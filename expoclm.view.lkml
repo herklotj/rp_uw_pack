@@ -1,5 +1,48 @@
 view: expoclm {
-  sql_table_name: aapricing.expoclm ;;
+  derived_table: {
+    sql: SELECT
+           polnum,
+           scheme_number,
+           evy,
+           exposure_asat,
+           exposure_start,
+           exposure_end,
+           net_premium,
+           eprem,
+           inception_strategy,
+           origin,
+           policy_type,
+           aauicl_tenure,
+           tp_count,
+           ad_count,
+           pi_count,
+           ot_count,
+           total_incurred,
+           total_incurred_cap_50k,
+           total_count_exc_ws,
+           reported_count_exc_ws,
+           rco1_coverstartdate1,
+           consumer_name,
+           value,
+           mileage,
+           rveti1_yearofregistration1,
+           purchase_dttm_,
+           ad_rated_area,
+           tp_rated_area,
+           pi_rated_area,
+           postal_region,
+           policy_convictions_5yrs,
+           f_claims_1yr,
+           nf_claims_1yr,
+           f_claims_5yrs,
+           nf_claims_5yrs,
+           dob_d1,
+           rpr1_mld1_licencequalifyingdate1,
+           ncd_years,
+           financial_year
+         FROM expoclm
+     ;;
+  }
 
   dimension: scheme_number {
     type: string
