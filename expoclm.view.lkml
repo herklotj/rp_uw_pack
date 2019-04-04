@@ -1,46 +1,50 @@
 view: expoclm {
   derived_table: {
     sql: SELECT
-           polnum,
-           scheme_number,
-           evy,
-           exposure_asat,
-           exposure_start,
-           exposure_end,
-           net_premium,
-           eprem,
-           inception_strategy,
-           origin,
-           policy_type,
-           aauicl_tenure,
-           tp_count,
-           ad_count,
-           pi_count,
-           ot_count,
-           total_incurred,
-           total_incurred_cap_50k,
-           total_count_exc_ws,
-           reported_count_exc_ws,
-           rco1_coverstartdate1,
-           consumer_name,
-           value,
-           mileage,
-           rveti1_yearofregistration1,
-           purchase_dttm_,
-           ad_rated_area,
-           tp_rated_area,
-           pi_rated_area,
-           postal_region,
-           policy_convictions_5yrs,
-           f_claims_1yr,
-           nf_claims_1yr,
-           f_claims_5yrs,
-           nf_claims_5yrs,
-           dob_d1,
-           rpr1_mld1_licencequalifyingdate1,
-           ncd_years,
-           financial_year
-         FROM expoclm
+           e.polnum,
+           e.scheme_number,
+           e.evy,
+           e.exposure_asat,
+           e.exposure_start,
+           e.exposure_end,
+           e.net_premium,
+           e.eprem,
+           e.inception_strategy,
+           e.origin,
+           e.policy_type,
+           e.aauicl_tenure,
+           e.tp_count,
+           e.ad_count,
+           e.pi_count,
+           e.ot_count,
+           e.ws_count,
+           e.total_incurred,
+           e.total_incurred_cap_50k,
+           e.total_count_exc_ws,
+           e.reported_count_exc_ws,
+           e.rco1_coverstartdate1,
+           e.consumer_name,
+           e.value,
+           e.mileage,
+           e.rveti1_yearofregistration1,
+           e.purchase_dttm_,
+           e.ad_rated_area,
+           e.tp_rated_area,
+           e.pi_rated_area,
+           e.postal_region,
+           e.policy_convictions_5yrs,
+           e.f_claims_1yr,
+           e.nf_claims_1yr,
+           e.f_claims_5yrs,
+           e.nf_claims_5yrs,
+           e.dob_d1,
+           e.rpr1_mld1_licencequalifyingdate1,
+           e.ncd_years,
+           e.financial_year,
+           g.postcode_area
+         FROM expoclm e
+         LEFT JOIN postcode_geography g
+          ON replace(e.postcode,' ','') = g.postcode
      ;;
   }
 
@@ -137,6 +141,12 @@ view: expoclm {
   dimension: postal_region {
     type: string
     sql: ${TABLE}.postal_region ;;
+  }
+
+  dimension: postcode_area {
+    type: string
+    map_layer_name: uk_postcode_areas
+    sql: ${TABLE}.postcode_area ;;
   }
 
   dimension: policy_convictions {
