@@ -12,6 +12,7 @@ view: expoclm {
            e.inception_strategy,
            e.origin,
            e.policy_type,
+           to_timestamp(e.inception) as inception,
            e.aauicl_tenure,
            e.tp_count,
            e.ad_count,
@@ -46,6 +47,16 @@ view: expoclm {
          LEFT JOIN postcode_geography g
           ON replace(e.postcode,' ','') = g.postcode
      ;;
+  }
+
+  dimension_group: inception {
+    type: time
+    timeframes: [
+      month,
+      quarter,
+      year
+    ]
+    sql: ${TABLE}.inception ;;
   }
 
   dimension: scheme_number {
