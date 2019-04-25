@@ -21,6 +21,7 @@ view: expoclm {
            e.ws_count,
            e.total_incurred,
            e.total_incurred_cap_50k,
+           e.total_incurred_cap_25k,
            e.total_count_exc_ws,
            e.reported_count_exc_ws,
            e.rco1_coverstartdate1,
@@ -259,6 +260,13 @@ view: expoclm {
     hidden: yes
   }
 
+  measure: total_incurred_cap_25k {
+    label: "Total Incurred (Cap 25K)"
+    type: sum
+    sql: ${TABLE}.total_incurred_cap_25k ;;
+    hidden: yes
+  }
+
   measure: total_count_exc_ws {
     label: "Total Count (Exc WS)"
     type: sum
@@ -367,6 +375,13 @@ view: expoclm {
     label: "Loss Ratio (Cap 50K)"
     type: number
     sql: ${total_incurred_cap_50k}/nullif(${earned_premium},0) ;;
+    value_format_name: percent_1
+  }
+
+  measure: loss_ratio_cap_25k {
+    label: "Loss Ratio (Cap 25K)"
+    type: number
+    sql: ${total_incurred_cap_25k}/nullif(${earned_premium},0) ;;
     value_format_name: percent_1
   }
 
