@@ -42,7 +42,9 @@ view: expoclm {
            e.rpr1_mld1_licencequalifyingdate1,
            e.ncd_years,
            e.financial_year,
-           g.postcode_area
+           g.postcode_area,
+           e.manufacturer,
+           e.fuel_type
          FROM expoclm e
          LEFT JOIN postcode_geography g
           ON replace(e.postcode,' ','') = g.postcode
@@ -111,6 +113,13 @@ view: expoclm {
     sql: year(rco1_coverstartdate1)-${TABLE}.rveti1_yearofregistration1 ;;
   }
 
+  dimension: manufacturer {
+    label: "Vehicle Make"
+    type: string
+    sql: ${TABLE}.manufacturer ;;
+  }
+
+
   dimension: mileage {
     type: tier
     tiers: [2000,5000,10000]
@@ -160,6 +169,13 @@ view: expoclm {
     sql: ${TABLE}.postcode_area ;;
   }
 
+
+  dimension: fuel_type {
+    label: "Fuel"
+    type: string
+    sql: ${TABLE}.fuel_type ;;
+  }
+
   dimension: policy_convictions {
     type: tier
     tiers: [1,2,3]
@@ -170,7 +186,7 @@ view: expoclm {
 
   dimension: policy_fault_claims {
     type: tier
-    tiers: [1,2,3]
+    tiers: [0,1,2,3]
     style: integer
     sql: ${TABLE}.f_claims_5yrs ;;
     description: "Number of fault claims on policy that have happened in the last 5 years"
