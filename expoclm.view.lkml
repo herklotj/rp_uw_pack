@@ -44,7 +44,8 @@ view: expoclm {
            e.financial_year,
            g.postcode_area,
            e.manufacturer,
-           e.fuel_type
+           e.fuel_type,
+           e.protected_ncd
          FROM expoclm e
          LEFT JOIN postcode_geography g
           ON replace(e.postcode,' ','') = g.postcode
@@ -69,6 +70,11 @@ view: expoclm {
   dimension: policy_origin {
     type: string
     sql: ${TABLE}.origin ;;
+  }
+
+  dimension: NCDP {
+    type: string
+    sql: ${TABLE}.protected_ncd ;;
   }
 
   dimension: policy_type {
