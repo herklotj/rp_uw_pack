@@ -256,6 +256,11 @@ view: expoclm {
     value_format_name: decimal_0
   }
 
+  measure: exposure_mix {
+    type: percent_of_total
+    sql: ${exposure} ;;
+  }
+
   measure: earned_premium {
     type: sum
     sql: ${TABLE}.eprem ;;
