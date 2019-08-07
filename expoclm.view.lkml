@@ -34,6 +34,7 @@ view: expoclm {
            e.tp_rated_area,
            e.pi_rated_area,
            e.postal_region,
+           e.postal_area,
            e.policy_convictions_5yrs,
            e.f_claims_1yr,
            e.nf_claims_1yr,
@@ -43,13 +44,26 @@ view: expoclm {
            e.rpr1_mld1_licencequalifyingdate1,
            e.ncd_years,
            e.financial_year,
-           g.postcode_area,
            e.manufacturer,
            e.fuel_type,
-           e.protected_ncd
+           e.protected_ncd,
+           e.owner_type,
+           e.rveti1_registeredkeeper1,
+           e.body_style,
+           e.transmission,
+           e.power_bhp,
+           e.engine_size,
+           e.e0ved1_kcd1_numberpreviouskeepers1,
+           e.vol_xs,
+           e.member_score_unbanded,
+           e.parking_type,
+           e.ppopulationdensity,
+           e.rp1_maindriver1,
+           e.rpr1_ownsothervehicles1,
+           e.rpr1_noofothervehiclesdriven1,
+           e.min_age,
+           e.lead_time
          FROM expoclm e
-         LEFT JOIN postcode_geography g
-          ON replace(e.postcode,' ','') = g.postcode
      ;;
   }
 
@@ -173,7 +187,7 @@ view: expoclm {
   dimension: postcode_area {
     type: string
     map_layer_name: uk_postcode_areas
-    sql: ${TABLE}.postcode_area ;;
+    sql: ${TABLE}.postal_area ;;
   }
 
 
