@@ -58,11 +58,11 @@ view: expoclm {
            e.member_score_unbanded,
            e.parking_type,
            e.ppopulationdensity,
-           e.rp1_maindriver1,
+           e.rpr1_maindriver1,
            e.rpr1_ownsothervehicles1,
            e.rpr1_noofothervehiclesdriven1,
            e.min_age,
-           e.lead_time
+           e.leadtime
          FROM expoclm e
      ;;
   }
