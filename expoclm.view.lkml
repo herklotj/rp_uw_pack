@@ -201,15 +201,15 @@ view: expoclm {
     type: tier
     tiers: [1,2,3]
     style: integer
-    sql: ${TABLE}.policy_convictions_5yrs ;;
+    sql: coalesce(${TABLE}.policy_convictions_5yrs,0) ;;
     description: "Number of convictions on policy that have happened in the last 5 years"
   }
 
   dimension: policy_fault_claims {
     type: tier
-    tiers: [0,1,2,3]
+    tiers: [1,2,3]
     style: integer
-    sql: ${TABLE}.f_claims_5yrs ;;
+    sql: coalesce(${TABLE}.f_claims_5yrs,0) ;;
     description: "Number of fault claims on policy that have happened in the last 5 years"
   }
 
@@ -218,7 +218,7 @@ view: expoclm {
     type: tier
     tiers: [1,2,3]
     style: integer
-    sql: ${TABLE}.nf_claims_5yrs ;;
+    sql: coalesce(${TABLE}.nf_claims_5yrs,0) ;;
     description: "Number of non-fault claims on policy that have happened in the last 5 years"
   }
 
@@ -227,7 +227,7 @@ view: expoclm {
     type: tier
     tiers: [1,2,3]
     style: integer
-    sql: ${TABLE}.f_claims_1yr ;;
+    sql: coalesce(${TABLE}.f_claims_1yr,0) ;;
     description: "Number of fault claims on policy that have happened in the last year"
   }
 
@@ -236,7 +236,7 @@ view: expoclm {
     type: tier
     tiers: [1,2,3]
     style: integer
-    sql: ${TABLE}.nf_claims_1yr ;;
+    sql: coalesce(${TABLE}.nf_claims_1yr,0) ;;
     description: "Number of non-fault claims on policy that have happened in the last year"
   }
 
