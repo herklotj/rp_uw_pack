@@ -397,6 +397,15 @@ view: expoclm {
     sql: ${TABLE}.e0ved1_kcd1_numberpreviouskeepers1;;
   }
 
+  dimension: min_age {
+    label: "Minimum Age"
+    type: tier
+    tiers: [30,40,50,60,70,80]
+    style: integer
+    sql: ${TABLE}.min_age ;;
+  }
+
+
  dimension: aug18vresv3_bc {
     type: number
     sql: round(
