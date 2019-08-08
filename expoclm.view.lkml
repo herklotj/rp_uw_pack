@@ -194,7 +194,10 @@ view: expoclm {
   dimension: fuel_type {
     label: "Fuel"
     type: string
-    sql: ${TABLE}.fuel_type ;;
+    sql: case when ${TABLE}.fuel_type = 'P' then 'Petrol'
+              when  ${TABLE}.fuel_type = 'D' then 'Diesel'
+              when ${TABLE}.fuel_type = 'E' then 'Electric'
+              else 'Unknown' end;;
   }
 
   dimension: policy_convictions {
@@ -262,6 +265,68 @@ view: expoclm {
     sql: ${TABLE}.ncd_years ;;
   }
 
+  dimension: transmission {
+    label: "Transmission"
+    type: string
+    sql: case when ${TABLE}.transmission = 'M' then 'Manual'
+              when  ${TABLE}.transmission = 'A' then 'Automatic'
+              else 'Unknown' end;;
+  }
+
+  dimension: body_style {
+    label: "Body Style"
+    type: string
+    sql: nullif(${TABLE}.body_style,'');;
+  }
+
+  dimension: engine_size {
+    label: "Engine Size"
+    type: tier
+    tiers: [1,1.2,1.4,1.6,1.8,2.0,2.2,2.4,2.6,2.8,3.0,3.5,4.0,4.5,5]
+    style: relational
+    sql: round(nullif(${TABLE}.engine_size,-99999) /1000.0,1);;
+    value_format: "0.0\"L\""
+  }
+
+  dimension: power_bhp {
+    label: "BHP"
+    type: tier
+    tiers: [80,100,110,120,130,140,150,160,170,180,200,250,300]
+    style: integer
+    sql: round(nullif(${TABLE}.power_bhp,-99999),0.1);;
+  }
+
+  dimension: owner_type {
+    label: "Vehicle Owner"
+    type: string
+    sql: case when ${TABLE}.owner_type = '1' then 'Policy Holder'
+              when ${TABLE}.owner_type = '2' then 'Spouse'
+              when ${TABLE}.owner_type = '3' then 'Company'
+              when ${TABLE}.owner_type = '4' then 'Leasing Company'
+              when ${TABLE}.owner_type = '6' then 'Parent'
+              when ${TABLE}.owner_type = '9' then 'Other'
+              else 'Unknown' end;;
+  }
+
+  dimension: rveti1_registeredkeeper1 {
+    label: "Vehicle Keeper"
+    type: string
+    sql: case when ${TABLE}.rveti1_registeredkeeper1 = '1' then 'Policy Holder'
+              when ${TABLE}.rveti1_registeredkeeper1 = '2' then 'Spouse'
+              when ${TABLE}.rveti1_registeredkeeper1 = '3' then 'Company'
+              when ${TABLE}.rveti1_registeredkeeper1 = '4' then 'Leasing Company'
+              when ${TABLE}.rveti1_registeredkeeper1 = '6' then 'Parent'
+              when ${TABLE}.rveti1_registeredkeeper1 = '9' then 'Other'
+              else 'Unknown' end;;
+  }
+
+  dimension: e0ved1_kcd1_numberpreviouskeepers1 {
+    label: "Number of Previous Keepers"
+    type: tier
+    tiers: [1,2,3,4,5]
+    style: integer
+    sql: ${TABLE}.e0ved1_kcd1_numberpreviouskeepers1;;
+  }
 
 # Measures
 
