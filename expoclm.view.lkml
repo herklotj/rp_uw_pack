@@ -478,9 +478,6 @@ dimension: aug18vresv3_ads {
                 ;;
   }
 
-
-
-
 dimension: scores_attached {
     type: string
     sql: risk_scores ;;
@@ -490,11 +487,6 @@ dimension: holdout_aug18 {
     type: string
     sql: holdout_aug18 ;;
 }
-
-
-
-
-
 
 # Measures
 
