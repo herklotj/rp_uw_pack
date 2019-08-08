@@ -1,6 +1,30 @@
 view: expoclm {
   derived_table: {
-    sql: SELECT
+    sql:
+    SELECT
+        *
+        ,(case when transaction_type in ('CrossQuote', 'Renewal')
+                        then
+                            predicted_ad_freq*predicted_ad_sev+ predicted_pi_freq*predicted_pi_sev+ predicted_tp_freq*predicted_tp_sev+ predicted_ot_freq*predicted_ot_sev+ predicted_ws_freq*predicted_ws_sev
+                        else
+                            predicted_ad_freq*predicted_ad_sev+ predicted_pi_freq*predicted_pi_sev+ predicted_tp_freq*predicted_tp_sev+ predicted_ot_freq*predicted_ot_sev+ predicted_ws_freq*predicted_ws_sev
+                         end)*evy
+          as predicted_incurred_resv3
+
+        ,(case when transaction_type in ('CrossQuote', 'Renewal')
+                       then
+                              predicted_ad_freq_aug18*predicted_ad_sev_aug18+ predicted_pi_freq_aug18*predicted_pi_sev_aug18+ predicted_tp_freq_aug18*predicted_tp_sev_aug18+ predicted_ot_freq_aug18*predicted_ot_sev_aug18+ predicted_ws_freq_aug18*predicted_ws_sev_aug18
+                       else
+                              predicted_ad_freq_aug18*predicted_ad_sev_aug18+ predicted_pi_freq_aug18*predicted_pi_sev_aug18+ predicted_tp_freq_aug18*predicted_tp_sev_aug18+ predicted_ot_freq_aug18*predicted_ot_sev_aug18+ predicted_ws_freq_aug18*predicted_ws_sev_aug18
+                       end)*evy
+          as predicted_incurred_aug18
+
+        , case when predicted_ad_freq_aug18 > 0 and predicted_ad_freq > 0 then 'Y' else 'N' end as risk_scores
+        , case when termincep >'2018-08-01' then 'Post Aug18' else 'Pre Aug18' end as holdout_aug18
+
+    FROM
+      (
+      SELECT
            e.polnum,
            e.scheme_number,
            e.evy,
@@ -9,16 +33,24 @@ view: expoclm {
            e.exposure_end,
            e.net_premium,
            e.eprem,
+           e.transaction_type,
            e.inception_strategy,
            e.origin,
            e.policy_type,
            to_timestamp(e.inception) as inception,
+           to_timestamp(e.termincep) as termincep,
            e.aauicl_tenure,
            e.tp_count,
            e.ad_count,
            e.pi_count,
            e.ot_count,
            e.ws_count,
+           e.ad_incurred,
+           e.tp_incurred,
+           e.pi_incurred_cap_50k,
+           e.pi_incurred_cap_25k,
+           e.ws_incurred,
+           e.ot_incurred,
            e.total_incurred,
            e.total_incurred_cap_50k,
            e.total_incurred_cap_25k,
@@ -62,8 +94,45 @@ view: expoclm {
            e.rpr1_ownsothervehicles1,
            e.rpr1_noofothervehiclesdriven1,
            e.min_age,
-           e.leadtime
-         FROM expoclm e
+           e.leadtime,
+
+
+              case when ncdp = 'N' then res.predicted_ad_freq_an*1.11 else res.predicted_ad_freq_ap*1.11 end as predicted_ad_freq,
+              case when ncdp = 'N' then res.predicted_ad_sev_an*1.25 else res.predicted_ad_sev_ap*1.25 end as predicted_ad_sev,
+              case when ncdp = 'N' then res.predicted_pi_freq_an*1.06 else res.predicted_pi_freq_ap*1.06 end as predicted_pi_freq,
+              case when ncdp = 'N' then res.predicted_pi_sev_an*0.85 else res.predicted_pi_sev_ap*0.85 end as predicted_pi_sev,
+              case when ncdp = 'N' then res.predicted_tpd_freq_an*0.9 else res.predicted_tpd_freq_ap*0.9 end as predicted_tp_freq,
+              case when ncdp = 'N' then res.predicted_tpd_sev_an*1.5 else res.predicted_tpd_sev_ap*1.5 end as predicted_tp_sev,
+              case when ncdp = 'N' then res.predicted_ot_freq_an*0.78 else res.predicted_ot_freq_ap*0.78 end as predicted_ot_freq,
+              case when ncdp = 'N' then res.predicted_ot_sev_an*2.7 else res.predicted_ot_sev_ap*2.7 end as predicted_ot_sev,
+              case when ncdp = 'N' then res.predicted_ws_freq_an*0.83 else res.predicted_ws_freq_ap*0.83 end as predicted_ws_freq,
+              case when ncdp = 'N' then res.predicted_ws_sev_an*1.42 else res.predicted_ws_sev_ap*1.42 end as predicted_ws_sev,
+
+              case when ncdp = 'N' then aug.predicted_ad_freq_an*aug18sc.AD_F else aug.predicted_ad_freq_ap*aug18sc.AD_F end as predicted_ad_freq_aug18,
+              case when ncdp = 'N' then aug.predicted_ad_sev_an*aug18sc.AD_S else aug.predicted_ad_sev_ap*aug18sc.AD_S end as predicted_ad_sev_aug18,
+              case when ncdp = 'N' then aug.predicted_pi_freq_an*aug18sc.PI_F else aug.predicted_pi_freq_ap*aug18sc.PI_F end as predicted_pi_freq_aug18,
+              case when ncdp = 'N' then aug.predicted_pi_sev_an*aug18sc.PI_S else aug.predicted_pi_sev_ap*aug18sc.PI_S end as predicted_pi_sev_aug18,
+              case when ncdp = 'N' then aug.predicted_tpd_freq_an*aug18sc.TP_F else aug.predicted_tpd_freq_ap*aug18sc.TP_F end as predicted_tp_freq_aug18,
+              case when ncdp = 'N' then aug.predicted_tpd_sev_an*aug18sc.TP_S else aug.predicted_tpd_sev_ap*aug18sc.TP_S end as predicted_tp_sev_aug18,
+              case when ncdp = 'N' then aug.predicted_ot_freq_an*aug18sc.OT_F else aug.predicted_ot_freq_ap*aug18sc.OT_F end as predicted_ot_freq_aug18,
+              case when ncdp = 'N' then aug.predicted_ot_sev_an*aug18sc.OT_S else aug.predicted_ot_sev_ap*aug18sc.OT_S end as predicted_ot_sev_aug18,
+              case when ncdp = 'N' then aug.predicted_ws_freq_an*aug18sc.WS_F else aug.predicted_ws_freq_ap*aug18sc.WS_F end as predicted_ws_freq_aug18,
+              case when ncdp = 'N' then aug.predicted_ws_sev_an*aug18sc.WS_S else aug.predicted_ws_sev_ap*aug18sc.WS_S end as predicted_ws_sev_aug18
+
+
+         FROM
+            expoclm e
+         left join
+              aapricing.uncalibrated_scores_aug18 aug
+              on left(e.quote_id, 36) = left(aug.quote_id, 36)
+         left join
+              aapricing.uncalibrated_scores res
+              on left(e.quote_id, 36) = left(res.quote_id, 36)
+         left join
+              motor_model_calibrations aug18sc
+              on aug18sc.policy_start_month = date_trunc('month',e.termincep) and aug18sc.model='August_18_pricing' and aug18sc.end = '9999-01-01'
+
+      )f
      ;;
   }
 
@@ -328,6 +397,105 @@ view: expoclm {
     sql: ${TABLE}.e0ved1_kcd1_numberpreviouskeepers1;;
   }
 
+ dimension: aug18vresv3_bc {
+    type: number
+    sql: round(
+                case when (predicted_incurred_aug18/ nullif(predicted_incurred_resv3,0)-1) > 1 then 1 else round( (predicted_incurred_aug18/ nullif(predicted_incurred_resv3,0)-1) ,1.0) end
+                ,1.0)
+                ;;
+ }
+
+dimension: aug18vresv3_adf {
+    type: number
+    sql: round(
+                case when (predicted_ad_freq_aug18/ nullif(predicted_ad_freq,0)-1) > 1 then 1 else round( (predicted_ad_freq_aug18/ nullif(predicted_ad_freq,0)-1) ,1.0) end
+                ,1.0)
+                ;;
+  }
+
+dimension: aug18vresv3_ads {
+    type: number
+    sql: round(
+                case when (predicted_ad_sev_aug18/ nullif(predicted_ad_sev,0)-1) > 1 then 1 else round( (predicted_ad_sev_aug18/ nullif(predicted_ad_sev,0)-1) ,1.0) end
+                ,1.0)
+                ;;
+  }
+
+  dimension: aug18vresv3_adbc {
+    type: number
+    sql: round(
+                case when (predicted_ad_freq_aug18*predicted_ad_sev_aug18*evy/ nullif(predicted_ad_freq*predicted_ad_sev*evy,0)-1) > 1 then 1 else round( (predicted_ad_freq_aug18*predicted_ad_sev_aug18*evy/ nullif(predicted_ad_freq*predicted_ad_sev*evy,0)-1) ,1.0) end
+                ,1.0)
+                ;;
+  }
+
+  dimension: aug18vresv3_tpf {
+    type: number
+    sql: round(
+                case when (predicted_tp_freq_aug18/ nullif(predicted_tp_freq,0)-1) > 1 then 1 else round( (predicted_tp_freq_aug18/ nullif(predicted_tp_freq,0)-1) ,1.0) end
+                ,1.0)
+                ;;
+  }
+
+  dimension: aug18vresv3_tps {
+    type: number
+    sql: round(
+                case when (predicted_tp_sev_aug18/ nullif(predicted_tp_sev,0)-1) > 1 then 1 else round( (predicted_tp_sev_aug18/ nullif(predicted_tp_sev,0)-1) ,1.0) end
+                ,1.0)
+                ;;
+  }
+
+  dimension: aug18vresv3_tpbc {
+    type: number
+    sql: round(
+                case when (predicted_tp_freq_aug18*predicted_tp_sev_aug18*evy/ nullif(predicted_tp_freq*predicted_tp_sev*evy,0)-1) > 1 then 1 else round( (predicted_tp_freq_aug18*predicted_tp_sev_aug18*evy/ nullif(predicted_tp_freq*predicted_tp_sev*evy,0)-1) ,1.0) end
+                ,1.0)
+                ;;
+  }
+
+
+  dimension: aug18vresv3_pif {
+    type: number
+    sql: round(
+                case when (predicted_pi_freq_aug18/ nullif(predicted_pi_freq,0)-1) > 1 then 1 else round( (predicted_pi_freq_aug18/ nullif(predicted_pi_freq,0)-1) ,1.0) end
+                ,1.0)
+                ;;
+  }
+
+  dimension: aug18vresv3_pis {
+    type: number
+    sql: round(
+                case when (predicted_pi_sev_aug18/ nullif(predicted_pi_sev,0)-1) > 1 then 1 else round( (predicted_pi_sev_aug18/ nullif(predicted_pi_sev,0)-1) ,1.0) end
+                ,1.0)
+                ;;
+  }
+
+  dimension: aug18vresv3_pibc {
+    type: number
+    sql: round(
+                case when (predicted_pi_freq_aug18*predicted_pi_sev_aug18*evy/ nullif(predicted_pi_freq*predicted_pi_sev*evy,0)-1) > 1 then 1 else round( (predicted_pi_freq_aug18*predicted_pi_sev_aug18*evy/ nullif(predicted_pi_freq*predicted_pi_sev*evy,0)-1) ,1.0) end
+                ,1.0)
+                ;;
+  }
+
+
+
+
+dimension: scores_attached {
+    type: string
+    sql: risk_scores ;;
+}
+
+dimension: holdout_aug18 {
+    type: string
+    sql: holdout_aug18 ;;
+}
+
+
+
+
+
+
 # Measures
 
   measure: exposure {
@@ -387,6 +555,36 @@ view: expoclm {
     hidden: yes
   }
 
+  measure: ad_incurred {
+    type: sum
+    sql:ad_incurred  ;;
+
+  }
+
+  measure: tp_incurred {
+    type: sum
+    sql:tp_incurred  ;;
+
+  }
+
+  measure: pi_incurred {
+    type: sum
+    sql:pi_incurred_cap_25k  ;;
+
+  }
+
+  measure: ot_incurred {
+    type: sum
+    sql:ot_incurred  ;;
+
+  }
+
+  measure: ws_incurred {
+    type: sum
+    sql:ws_incurred  ;;
+
+  }
+
   measure: ad_count {
     label: "AD Count"
     type: sum
@@ -442,6 +640,20 @@ view: expoclm {
     value_format_name: percent_1
   }
 
+  measure: ad_severity {
+    label: "AD Severity"
+    type: number
+    sql: ${ad_incurred} /nullif(${ad_count},0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: ad_bc {
+    label: "AD Burning Cost"
+    type: number
+    sql: ${ad_incurred}/nullif(${exposure},0) ;;
+    value_format_name: gbp_0
+  }
+
   measure: pi_frequency {
     label: "PI Frequency"
     type: number
@@ -449,12 +661,42 @@ view: expoclm {
     value_format_name: percent_2
   }
 
+  measure: pi_severity {
+    label: "PI Severity"
+    type: number
+    sql: ${pi_incurred} /nullif(${pi_count},0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: pi_bc {
+    label: "PI Burning Cost"
+    type: number
+    sql: ${pi_incurred}/nullif(${exposure},0) ;;
+    value_format_name: gbp_0
+  }
+
+
   measure: tp_frequency {
     label: "TP Frequency"
     type: number
     sql: ${tp_count}/nullif(${exposure},0) ;;
     value_format_name: percent_1
   }
+
+  measure: tp_severity {
+    label: "TP Severity"
+    type: number
+    sql: ${tp_incurred} /nullif(${tp_count},0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: tp_bc {
+    label: "TP Burning Cost"
+    type: number
+    sql: ${tp_incurred}/nullif(${exposure},0) ;;
+    value_format_name: gbp_0
+  }
+
 
   measure: ot_frequency {
     label: "OT Frequency"
@@ -469,6 +711,9 @@ view: expoclm {
     sql: ${ws_count}/nullif(${exposure},0) ;;
     value_format_name: percent_1
   }
+
+
+
 
   measure: loss_ratio {
     label: "Loss Ratio (Uncapped)"
@@ -490,5 +735,129 @@ view: expoclm {
     sql: ${total_incurred_cap_25k}/nullif(${earned_premium},0) ;;
     value_format_name: percent_1
   }
+
+
+  measure: pred_loss_ratio_resv3 {
+    type: number
+    sql: sum(predicted_incurred_resv3)/nullif(sum(case when predicted_incurred_resv3 > 0 then eprem else 0 end),0) ;;
+    value_format_name: percent_1
+  }
+
+
+  measure: pred_loss_ratio_aug18 {
+    type: number
+    sql: sum(predicted_incurred_aug18)/nullif(sum(case when predicted_incurred_aug18 > 0 then eprem else 0 end),0) ;;
+    value_format_name: percent_1
+  }
+
+
+  measure: pred_ad_freq_resv3 {
+    type: number
+    sql: sum(predicted_ad_freq*evy)/nullif(sum(case when predicted_ad_freq > 0 then evy else 0 end),0) ;;
+    value_format_name: percent_1
+  }
+
+  measure: pred_ad_freq_aug18 {
+    type: number
+    sql: sum(predicted_ad_freq_aug18*evy)/nullif(sum(case when predicted_ad_freq_aug18 > 0 then evy else 0 end),0) ;;
+    value_format_name: percent_1
+  }
+
+  measure: pred_ad_sev_resv3 {
+    type: number
+    sql: sum(predicted_ad_sev*evy)/nullif(sum(case when predicted_ad_sev > 0 then evy else 0 end),0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: pred_ad_sev_aug18 {
+    type: number
+    sql: sum(predicted_ad_sev_aug18*evy)/nullif(sum(case when predicted_ad_sev_aug18 > 0 then evy else 0 end),0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: pred_ad_bc_resv3 {
+    type: number
+    sql: sum(predicted_ad_freq*predicted_ad_sev*evy)/nullif(sum(case when predicted_ad_freq*predicted_ad_sev > 0 then evy else 0 end),0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: pred_ad_bc_aug18 {
+    type: number
+    sql: sum(predicted_ad_freq_aug18*predicted_ad_sev_aug18*evy)/nullif(sum(case when predicted_ad_freq_aug18*predicted_ad_sev_aug18 > 0 then evy else 0 end),0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: pred_tp_freq_resv3 {
+    type: number
+    sql: sum(predicted_tp_freq*evy)/nullif(sum(case when predicted_tp_freq > 0 then evy else 0 end),0) ;;
+    value_format_name: percent_1
+  }
+
+  measure: pred_tp_freq_aug18 {
+    type: number
+    sql: sum(predicted_tp_freq_aug18*evy)/nullif(sum(case when predicted_tp_freq_aug18 > 0 then evy else 0 end),0) ;;
+    value_format_name: percent_1
+  }
+
+  measure: pred_tp_sev_resv3 {
+    type: number
+    sql: sum(predicted_tp_sev*evy)/nullif(sum(case when predicted_tp_sev > 0 then evy else 0 end),0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: pred_tp_sev_aug18 {
+    type: number
+    sql: sum(predicted_tp_sev_aug18*evy)/nullif(sum(case when predicted_tp_sev_aug18 > 0 then evy else 0 end),0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: pred_tp_bc_resv3 {
+    type: number
+    sql: sum(predicted_tp_freq*predicted_tp_sev*evy)/nullif(sum(case when predicted_tp_freq*predicted_tp_sev > 0 then evy else 0 end),0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: pred_tp_bc_aug18 {
+    type: number
+    sql: sum(predicted_tp_freq_aug18*predicted_tp_sev_aug18*evy)/nullif(sum(case when predicted_tp_freq_aug18*predicted_tp_sev_aug18 > 0 then evy else 0 end),0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: pred_pi_freq_resv3 {
+    type: number
+    sql: sum(predicted_pi_freq*evy)/nullif(sum(case when predicted_pi_freq > 0 then evy else 0 end),0) ;;
+    value_format_name: percent_1
+  }
+
+  measure: pred_pi_freq_aug18 {
+    type: number
+    sql: sum(predicted_pi_freq_aug18*evy)/nullif(sum(case when predicted_pi_freq_aug18 > 0 then evy else 0 end),0) ;;
+    value_format_name: percent_1
+  }
+
+  measure: pred_pi_sev_resv3 {
+    type: number
+    sql: sum(predicted_pi_sev*evy)/nullif(sum(case when predicted_pi_sev > 0 then evy else 0 end),0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: pred_pi_sev_aug18 {
+    type: number
+    sql: sum(predicted_pi_sev_aug18*evy)/nullif(sum(case when predicted_pi_sev_aug18 > 0 then evy else 0 end),0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: pred_pi_bc_resv3 {
+    type: number
+    sql: sum(predicted_pi_freq*predicted_pi_sev*evy)/nullif(sum(case when predicted_pi_freq*predicted_pi_sev > 0 then evy else 0 end),0) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: pred_pi_bc_aug18 {
+    type: number
+    sql: sum(predicted_pi_freq_aug18*predicted_pi_sev_aug18*evy)/nullif(sum(case when predicted_pi_freq_aug18*predicted_pi_sev_aug18 > 0 then evy else 0 end),0) ;;
+    value_format_name: gbp_0
+  }
+
 
 }
