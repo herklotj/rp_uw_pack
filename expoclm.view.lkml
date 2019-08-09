@@ -2,124 +2,119 @@ view: expoclm {
   derived_table: {
     sql:
     SELECT
-        *
-        ,(case when transaction_type in ('CrossQuote', 'Renewal')
-                        then
-                            predicted_ad_freq*predicted_ad_sev+ predicted_pi_freq*predicted_pi_sev+ predicted_tp_freq*predicted_tp_sev+ predicted_ot_freq*predicted_ot_sev+ predicted_ws_freq*predicted_ws_sev
-                        else
-                            predicted_ad_freq*predicted_ad_sev+ predicted_pi_freq*predicted_pi_sev+ predicted_tp_freq*predicted_tp_sev+ predicted_ot_freq*predicted_ot_sev+ predicted_ws_freq*predicted_ws_sev
+        *,
+        (case when transaction_type in ('CrossQuote', 'Renewal')
+                then
+                  predicted_ad_freq*predicted_ad_sev+ predicted_pi_freq*predicted_pi_sev+ predicted_tp_freq*predicted_tp_sev+ predicted_ot_freq*predicted_ot_sev+ predicted_ws_freq*predicted_ws_sev
+              else
+                  predicted_ad_freq*predicted_ad_sev+ predicted_pi_freq*predicted_pi_sev+ predicted_tp_freq*predicted_tp_sev+ predicted_ot_freq*predicted_ot_sev+ predicted_ws_freq*predicted_ws_sev
                          end)*evy
-          as predicted_incurred_resv3
-
-        ,(case when transaction_type in ('CrossQuote', 'Renewal')
-                       then
-                              predicted_ad_freq_aug18*predicted_ad_sev_aug18+ predicted_pi_freq_aug18*predicted_pi_sev_aug18+ predicted_tp_freq_aug18*predicted_tp_sev_aug18+ predicted_ot_freq_aug18*predicted_ot_sev_aug18+ predicted_ws_freq_aug18*predicted_ws_sev_aug18
-                       else
-                              predicted_ad_freq_aug18*predicted_ad_sev_aug18+ predicted_pi_freq_aug18*predicted_pi_sev_aug18+ predicted_tp_freq_aug18*predicted_tp_sev_aug18+ predicted_ot_freq_aug18*predicted_ot_sev_aug18+ predicted_ws_freq_aug18*predicted_ws_sev_aug18
-                       end)*evy
-          as predicted_incurred_aug18
-
-        , case when predicted_ad_freq_aug18 > 0 and predicted_ad_freq > 0 then 'Y' else 'N' end as risk_scores
-        , case when termincep >'2018-08-01' then 'Post Aug18' else 'Pre Aug18' end as holdout_aug18
-
+          as predicted_incurred_resv3,
+        (case when transaction_type in ('CrossQuote', 'Renewal')
+                then
+                  predicted_ad_freq_aug18*predicted_ad_sev_aug18+ predicted_pi_freq_aug18*predicted_pi_sev_aug18+ predicted_tp_freq_aug18*predicted_tp_sev_aug18+ predicted_ot_freq_aug18*predicted_ot_sev_aug18+ predicted_ws_freq_aug18*predicted_ws_sev_aug18
+              else
+                  predicted_ad_freq_aug18*predicted_ad_sev_aug18+ predicted_pi_freq_aug18*predicted_pi_sev_aug18+ predicted_tp_freq_aug18*predicted_tp_sev_aug18+ predicted_ot_freq_aug18*predicted_ot_sev_aug18+ predicted_ws_freq_aug18*predicted_ws_sev_aug18
+              end)*evy
+          as predicted_incurred_aug18,
+        case when predicted_ad_freq_aug18 > 0 and predicted_ad_freq > 0 then 'Y' else 'N' end as risk_scores,
+        case when termincep >'2018-08-01' then 'Post Aug18' else 'Pre Aug18' end as holdout_aug18
     FROM
       (
       SELECT
-           e.polnum,
-           e.scheme_number,
-           e.evy,
-           e.exposure_asat,
-           e.exposure_start,
-           e.exposure_end,
-           e.net_premium,
-           e.eprem,
-           e.transaction_type,
-           e.inception_strategy,
-           e.origin,
-           e.policy_type,
-           to_timestamp(e.inception) as inception,
-           to_timestamp(e.termincep) as termincep,
-           e.aauicl_tenure,
-           e.tp_count,
-           e.ad_count,
-           e.pi_count,
-           e.ot_count,
-           e.ws_count,
-           e.ad_incurred,
-           e.tp_incurred,
-           e.pi_incurred_cap_50k,
-           e.pi_incurred_cap_25k,
-           e.ws_incurred,
-           e.ot_incurred,
-           e.total_incurred,
-           e.total_incurred_cap_50k,
-           e.total_incurred_cap_25k,
-           e.total_count_exc_ws,
-           e.reported_count_exc_ws,
-           e.rco1_coverstartdate1,
-           e.consumer_name,
-           e.value,
-           e.mileage,
-           e.rveti1_yearofregistration1,
-           e.purchase_dttm_,
-           e.ad_rated_area,
-           e.tp_rated_area,
-           e.pi_rated_area,
-           e.postal_region,
-           e.postal_area,
-           e.policy_convictions_5yrs,
-           e.f_claims_1yr,
-           e.nf_claims_1yr,
-           e.f_claims_5yrs,
-           e.nf_claims_5yrs,
-           e.dob_d1,
-           e.rpr1_mld1_licencequalifyingdate1,
-           e.ncd_years,
-           e.financial_year,
-           e.manufacturer,
-           e.fuel_type,
-           e.protected_ncd,
-           e.owner_type,
-           e.rveti1_registeredkeeper1,
-           e.body_style,
-           e.transmission,
-           e.power_bhp,
-           e.engine_size,
-           e.e0ved1_kcd1_numberpreviouskeepers1,
-           e.vol_xs,
-           e.member_score_unbanded,
-           e.parking_type,
-           e.ppopulationdensity,
-           e.rpr1_maindriver1,
-           e.rpr1_ownsothervehicles1,
-           e.rpr1_noofothervehiclesdriven1,
-           e.min_age,
-           e.leadtime,
-
-
-              case when ncdp = 'N' then res.predicted_ad_freq_an*1.11 else res.predicted_ad_freq_ap*1.11 end as predicted_ad_freq,
-              case when ncdp = 'N' then res.predicted_ad_sev_an*1.25 else res.predicted_ad_sev_ap*1.25 end as predicted_ad_sev,
-              case when ncdp = 'N' then res.predicted_pi_freq_an*1.06 else res.predicted_pi_freq_ap*1.06 end as predicted_pi_freq,
-              case when ncdp = 'N' then res.predicted_pi_sev_an*0.85 else res.predicted_pi_sev_ap*0.85 end as predicted_pi_sev,
-              case when ncdp = 'N' then res.predicted_tpd_freq_an*0.9 else res.predicted_tpd_freq_ap*0.9 end as predicted_tp_freq,
-              case when ncdp = 'N' then res.predicted_tpd_sev_an*1.5 else res.predicted_tpd_sev_ap*1.5 end as predicted_tp_sev,
-              case when ncdp = 'N' then res.predicted_ot_freq_an*0.78 else res.predicted_ot_freq_ap*0.78 end as predicted_ot_freq,
-              case when ncdp = 'N' then res.predicted_ot_sev_an*2.7 else res.predicted_ot_sev_ap*2.7 end as predicted_ot_sev,
-              case when ncdp = 'N' then res.predicted_ws_freq_an*0.83 else res.predicted_ws_freq_ap*0.83 end as predicted_ws_freq,
-              case when ncdp = 'N' then res.predicted_ws_sev_an*1.42 else res.predicted_ws_sev_ap*1.42 end as predicted_ws_sev,
-
-              case when ncdp = 'N' then aug.predicted_ad_freq_an*aug18sc.AD_F else aug.predicted_ad_freq_ap*aug18sc.AD_F end as predicted_ad_freq_aug18,
-              case when ncdp = 'N' then aug.predicted_ad_sev_an*aug18sc.AD_S else aug.predicted_ad_sev_ap*aug18sc.AD_S end as predicted_ad_sev_aug18,
-              case when ncdp = 'N' then aug.predicted_pi_freq_an*aug18sc.PI_F else aug.predicted_pi_freq_ap*aug18sc.PI_F end as predicted_pi_freq_aug18,
-              case when ncdp = 'N' then aug.predicted_pi_sev_an*aug18sc.PI_S else aug.predicted_pi_sev_ap*aug18sc.PI_S end as predicted_pi_sev_aug18,
-              case when ncdp = 'N' then aug.predicted_tpd_freq_an*aug18sc.TP_F else aug.predicted_tpd_freq_ap*aug18sc.TP_F end as predicted_tp_freq_aug18,
-              case when ncdp = 'N' then aug.predicted_tpd_sev_an*aug18sc.TP_S else aug.predicted_tpd_sev_ap*aug18sc.TP_S end as predicted_tp_sev_aug18,
-              case when ncdp = 'N' then aug.predicted_ot_freq_an*aug18sc.OT_F else aug.predicted_ot_freq_ap*aug18sc.OT_F end as predicted_ot_freq_aug18,
-              case when ncdp = 'N' then aug.predicted_ot_sev_an*aug18sc.OT_S else aug.predicted_ot_sev_ap*aug18sc.OT_S end as predicted_ot_sev_aug18,
-              case when ncdp = 'N' then aug.predicted_ws_freq_an*aug18sc.WS_F else aug.predicted_ws_freq_ap*aug18sc.WS_F end as predicted_ws_freq_aug18,
-              case when ncdp = 'N' then aug.predicted_ws_sev_an*aug18sc.WS_S else aug.predicted_ws_sev_ap*aug18sc.WS_S end as predicted_ws_sev_aug18
-
-
+            e.polnum,
+            e.scheme_number,
+            e.evy,
+            e.exposure_asat,
+            e.exposure_start,
+            e.exposure_end,
+            e.net_premium,
+            e.eprem,
+            e.transaction_type,
+            e.inception_strategy,
+            e.origin,
+            e.policy_type,
+            to_timestamp(e.inception) as inception,
+            to_timestamp(e.termincep) as termincep,
+            e.aauicl_tenure,
+            e.tp_count,
+            e.ad_count,
+            e.pi_count,
+            e.ot_count,
+            e.ws_count,
+            e.ad_incurred,
+            e.tp_incurred,
+            e.pi_incurred_cap_50k,
+            e.pi_incurred_cap_25k,
+            e.ws_incurred,
+            e.ot_incurred,
+            e.total_incurred,
+            e.total_incurred_cap_50k,
+            e.total_incurred_cap_25k,
+            e.total_count_exc_ws,
+            e.reported_count_exc_ws,
+            e.rco1_coverstartdate1,
+            e.consumer_name,
+            e.value,
+            e.mileage,
+            e.rveti1_yearofregistration1,
+            e.purchase_dttm_,
+            e.ad_rated_area,
+            e.tp_rated_area,
+            e.pi_rated_area,
+            e.postal_region,
+            e.postal_area,
+            e.policy_convictions_5yrs,
+            e.f_claims_1yr,
+            e.nf_claims_1yr,
+            e.f_claims_5yrs,
+            e.nf_claims_5yrs,
+            e.dob_d1,
+            e.rpr1_mld1_licencequalifyingdate1,
+            e.ncd_years,
+            e.financial_year,
+            e.manufacturer,
+            e.fuel_type,
+            e.protected_ncd,
+            e.owner_type,
+            e.rveti1_registeredkeeper1,
+            e.body_style,
+            e.transmission,
+            e.power_bhp,
+            e.engine_size,
+            e.e0ved1_kcd1_numberpreviouskeepers1,
+            e.vol_xs,
+            e.member_score_unbanded,
+            e.parking_type,
+            e.ppopulationdensity,
+            e.rpr1_maindriver1,
+            e.rpr1_ownsothervehicles1,
+            e.rpr1_noofothervehiclesdriven1,
+            e.min_age,
+            e.leadtime,
+            ra.ad_ra_update,
+            ra.tp_ra_update,
+            ra.pi_ra_update,
+            case when ncdp = 'N' then res.predicted_ad_freq_an*1.11 else res.predicted_ad_freq_ap*1.11 end as predicted_ad_freq,
+            case when ncdp = 'N' then res.predicted_ad_sev_an*1.25 else res.predicted_ad_sev_ap*1.25 end as predicted_ad_sev,
+            case when ncdp = 'N' then res.predicted_pi_freq_an*1.06 else res.predicted_pi_freq_ap*1.06 end as predicted_pi_freq,
+            case when ncdp = 'N' then res.predicted_pi_sev_an*0.85 else res.predicted_pi_sev_ap*0.85 end as predicted_pi_sev,
+            case when ncdp = 'N' then res.predicted_tpd_freq_an*0.9 else res.predicted_tpd_freq_ap*0.9 end as predicted_tp_freq,
+            case when ncdp = 'N' then res.predicted_tpd_sev_an*1.5 else res.predicted_tpd_sev_ap*1.5 end as predicted_tp_sev,
+            case when ncdp = 'N' then res.predicted_ot_freq_an*0.78 else res.predicted_ot_freq_ap*0.78 end as predicted_ot_freq,
+            case when ncdp = 'N' then res.predicted_ot_sev_an*2.7 else res.predicted_ot_sev_ap*2.7 end as predicted_ot_sev,
+            case when ncdp = 'N' then res.predicted_ws_freq_an*0.83 else res.predicted_ws_freq_ap*0.83 end as predicted_ws_freq,
+            case when ncdp = 'N' then res.predicted_ws_sev_an*1.42 else res.predicted_ws_sev_ap*1.42 end as predicted_ws_sev,
+            case when ncdp = 'N' then aug.predicted_ad_freq_an*aug18sc.AD_F else aug.predicted_ad_freq_ap*aug18sc.AD_F end as predicted_ad_freq_aug18,
+            case when ncdp = 'N' then aug.predicted_ad_sev_an*aug18sc.AD_S else aug.predicted_ad_sev_ap*aug18sc.AD_S end as predicted_ad_sev_aug18,
+            case when ncdp = 'N' then aug.predicted_pi_freq_an*aug18sc.PI_F else aug.predicted_pi_freq_ap*aug18sc.PI_F end as predicted_pi_freq_aug18,
+            case when ncdp = 'N' then aug.predicted_pi_sev_an*aug18sc.PI_S else aug.predicted_pi_sev_ap*aug18sc.PI_S end as predicted_pi_sev_aug18,
+            case when ncdp = 'N' then aug.predicted_tpd_freq_an*aug18sc.TP_F else aug.predicted_tpd_freq_ap*aug18sc.TP_F end as predicted_tp_freq_aug18,
+            case when ncdp = 'N' then aug.predicted_tpd_sev_an*aug18sc.TP_S else aug.predicted_tpd_sev_ap*aug18sc.TP_S end as predicted_tp_sev_aug18,
+            case when ncdp = 'N' then aug.predicted_ot_freq_an*aug18sc.OT_F else aug.predicted_ot_freq_ap*aug18sc.OT_F end as predicted_ot_freq_aug18,
+            case when ncdp = 'N' then aug.predicted_ot_sev_an*aug18sc.OT_S else aug.predicted_ot_sev_ap*aug18sc.OT_S end as predicted_ot_sev_aug18,
+            case when ncdp = 'N' then aug.predicted_ws_freq_an*aug18sc.WS_F else aug.predicted_ws_freq_ap*aug18sc.WS_F end as predicted_ws_freq_aug18,
+            case when ncdp = 'N' then aug.predicted_ws_sev_an*aug18sc.WS_S else aug.predicted_ws_sev_ap*aug18sc.WS_S end as predicted_ws_sev_aug18
          FROM
             expoclm e
          left join
@@ -131,7 +126,9 @@ view: expoclm {
          left join
               motor_model_calibrations aug18sc
               on aug18sc.policy_start_month = date_trunc('month',e.termincep) and aug18sc.model='August_18_pricing' and aug18sc.end = '9999-01-01'
-
+         left join
+              ra_update ra
+              on ra.postcode_sector = left(replace(e.postcode,' ',''),length(replace(e.postcode,' ',''))-2)
       )f
      ;;
   }
@@ -246,6 +243,30 @@ view: expoclm {
     tiers: [20,30,40,50]
     style: integer
     sql: ${TABLE}.tp_rated_area ;;
+  }
+
+  dimension: ad_ra_update {
+    label: "New AD Rated Area"
+    type: tier
+    tiers: [20,40,60,80]
+    style: integer
+    sql: ${TABLE}.ad_ra_update ;;
+  }
+
+  dimension: tp_ra_update {
+    label: "New TP Rated Area"
+    type: tier
+    tiers: [20,40,60,80]
+    style: integer
+    sql: ${TABLE}.tp_ra_update ;;
+  }
+
+  dimension: pi_ra_update {
+    label: "New PI Rated Area"
+    type: tier
+    tiers: [20,40,60,80]
+    style: integer
+    sql: ${TABLE}.pi_ra_update ;;
   }
 
   dimension: postal_region {
@@ -405,6 +426,27 @@ view: expoclm {
     sql: ${TABLE}.min_age ;;
   }
 
+  dimension: ppopulationdensity {
+    label: "Population Density"
+    type: number
+    sql: nullif(${TABLE}.ppopulationdensity,'');;
+  }
+
+  dimension: vol_xs {
+    label: "Voluntary Excess"
+    type: tier
+    tiers: [50,100,150,200,250,300,350,400,450,500]
+    style: integer
+    sql: nullif(${TABLE}.vol_xs,'');;
+  }
+
+  dimension: leadtime {
+    label: "Lead Time"
+    type: tier
+    tiers: [1,3,5,10,15,20,25,30]
+    style: integer
+    sql: ${TABLE}.leadtime;;
+  }
 
  dimension: aug18vresv3_bc {
     type: number
