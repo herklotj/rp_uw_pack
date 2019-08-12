@@ -28,6 +28,7 @@ view: expoclm {
             e.exposure_asat,
             e.exposure_start,
             e.exposure_end,
+            date_trunc('quarter',e.exposure_start) as acc_quarter,
             e.net_premium,
             e.eprem,
             e.transaction_type,
@@ -116,7 +117,7 @@ view: expoclm {
             case when ncdp = 'N' then aug.predicted_ws_freq_an*aug18sc.WS_F else aug.predicted_ws_freq_ap*aug18sc.WS_F end as predicted_ws_freq_aug18,
             case when ncdp = 'N' then aug.predicted_ws_sev_an*aug18sc.WS_S else aug.predicted_ws_sev_ap*aug18sc.WS_S end as predicted_ws_sev_aug18
          FROM
-            expoclm e
+            expoclm_quarters e
          left join
               aapricing.uncalibrated_scores_aug18 aug
               on left(e.quote_id, 36) = left(aug.quote_id, 36)
@@ -141,6 +142,11 @@ view: expoclm {
       year
     ]
     sql: ${TABLE}.inception ;;
+  }
+
+  dimension: Accident_Quarter {
+    type: date_quarter
+    sql: ${TABLE}.acc_quarter ;;
   }
 
   dimension: scheme_number {
