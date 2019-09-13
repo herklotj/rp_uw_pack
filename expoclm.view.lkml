@@ -908,5 +908,18 @@ dimension: holdout_aug18 {
     value_format_name: gbp_0
   }
 
+  measure:  pi_xs_100k_freq{
+    type: number
+    sql: sum(case when total_incurred>=100000 then 1 else 0 end)/nullif(${exposure},0) ;;
+    value_format: "0.0000%"
+
+  }
+
+  measure:  pi_xs_100k_count{
+    type: number
+    sql: sum(case when total_incurred>=100000 then 1 else 0 end) ;;
+
+
+  }
 
 }
