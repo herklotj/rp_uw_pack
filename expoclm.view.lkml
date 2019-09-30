@@ -497,6 +497,14 @@ view: expoclm {
                 ;;
   }
 
+  dimension: jul19credvresv3_bc {
+    type: number
+    sql: round(
+                case when (predicted_incurred_jul19cred/ nullif(predicted_incurred_resv3,0)-1) > 1 then 1 else round( (predicted_incurred_jul19cred/ nullif(predicted_incurred_resv3,0)-1) ,1.0) end
+                ,1.0)
+                ;;
+  }
+
 
 dimension: aug18vresv3_adf {
     type: number
