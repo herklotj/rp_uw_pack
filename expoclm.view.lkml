@@ -137,7 +137,8 @@ view: expoclm {
             case when ncdp = 'N' then jcred.predicted_ot_sev_an*jcredsc.OT_S else jcred.predicted_ot_sev_ap*jcredsc.OT_S end * 2.02 as predicted_ot_sev_jul19cred,
             case when ncdp = 'N' then jcred.predicted_ws_freq_an*jcredsc.WS_F else jcred.predicted_ws_freq_ap*jcredsc.WS_F end * 0.895 as predicted_ws_freq_jul19cred,
             case when ncdp = 'N' then jcred.predicted_ws_sev_an*jcredsc.WS_S else jcred.predicted_ws_sev_ap*jcredsc.WS_S end * 1.22 as predicted_ws_sev_jul19cred,
-            e.originator_name
+            e.originator_name,
+            e.uwyr
          FROM
             expoclm_quarters e
          left join
@@ -175,6 +176,11 @@ view: expoclm {
   dimension: Accident_Quarter {
     type: date_quarter
     sql: ${TABLE}.acc_quarter ;;
+  }
+
+  dimension: Underwriting_Year {
+    type: string
+    sql: ${TABLE}.uwyr ;;
   }
 
   dimension: scheme_number {
@@ -646,6 +652,14 @@ dimension: holdout_aug18 {
     hidden: yes
   }
 
+  measure: total_incurred_cap_1m {
+    label: "Total Incurred (Cap 1m)"
+    type: number
+    sql: sum(case when total_incurred > 1000000 then 1000000 else total_incurred end) ;;
+    hidden: yes
+  }
+
+
   measure: total_count_exc_ws {
     label: "Total Count (Exc WS)"
     type: sum
@@ -838,6 +852,13 @@ dimension: holdout_aug18 {
     label: "Loss Ratio (Cap 25K)"
     type: number
     sql: ${total_incurred_cap_25k}/nullif(${earned_premium},0) ;;
+    value_format_name: percent_1
+  }
+
+  measure: loss_ratio_cap_1m {
+    label: "Loss Ratio (Cap 1m)"
+    type: number
+    sql: ${total_incurred_cap_1m}/nullif(${earned_premium},0) ;;
     value_format_name: percent_1
   }
 
