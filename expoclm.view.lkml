@@ -49,7 +49,10 @@ view: expoclm {
       (
       SELECT
             e.polnum,
+            e.add_match,
+            e.delphi_score,
             e.scheme_number,
+            e.scheme,
             e.evy,
             e.exposure_asat,
             e.exposure_start,
@@ -113,6 +116,7 @@ view: expoclm {
             e.engine_size,
             e.e0ved1_kcd1_numberpreviouskeepers1,
             e.vol_xs,
+            e.age_mem_yrs,
             e.member_score_unbanded,
             e.parking_type,
             e.ppopulationdensity,
@@ -222,7 +226,35 @@ view: expoclm {
     type: date_quarter
     sql: ${TABLE}.acc_quarter ;;
 
+  }
+
+  dimension: age_mem_years {
+    type: string
+    sql: ${TABLE}.age_mem_yrs ;;
+
+  }
+
+  dimension: scheme {
+    type: string
+    sql: ${TABLE}.scheme ;;
+
     }
+
+  dimension: address_match {
+    type: string
+    sql: ${TABLE}.add_match ;;
+
+
+  }
+
+  dimension: delphi_score {
+    type: tier
+    tiers: [700, 799, 874, 875]
+    style: relational
+    sql: ${TABLE}.delphi_score ;;
+
+
+  }
 
   dimension: member_score {
     type: tier
