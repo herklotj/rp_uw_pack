@@ -49,6 +49,7 @@ view: expoclm {
       (
       SELECT
             e.polnum,
+            e.conversion
             e.add_match,
             e.delphi_score,
             e.scheme_number,
@@ -237,6 +238,12 @@ view: expoclm {
   dimension: scheme {
     type: string
     sql: ${TABLE}.scheme ;;
+
+  }
+
+  dimension: conversion {
+    type: number
+    sql: ${TABLE}.conversion ;;
 
     }
 
