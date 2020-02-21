@@ -26,7 +26,24 @@ view: expoclm {
           as predicted_incurred_jul19cred,
         case when predicted_ad_freq_aug18 > 0 and predicted_ad_freq > 0 then 'Y' else 'N' end as risk_scores,
         case when termincep >'2018-08-01' then 'Post Aug18' else 'Pre Aug18' end as holdout_aug18,
-        case when termincep >'2019-01-01' then 'Post Jul19' else 'Pre Jul19' end as holdout_jul19
+        case when termincep >'2019-01-01' then 'Post Jul19' else 'Pre Jul19' end as holdout_jul19,
+
+        case
+        when transaction_type in ('CrossQuote', 'Renewal') then
+          predicted_ad_freq*1.08*predicted_ad_sev*1.24+
+          predicted_pi_freq*1.19*predicted_pi_sev*0.86+
+          predicted_tp_freq*0.97*predicted_tp_sev*1.30+
+          predicted_ot_freq*0.73*predicted_ot_sev*2.02+
+          predicted_ws_freq*0.82*predicted_ws_sev*1.28+
+          18
+        else
+          predicted_ad_freq*1.07*predicted_ad_sev*1.21+
+          predicted_pi_freq*0.95*predicted_pi_sev*0.85+
+          predicted_tp_freq*0.84*predicted_tp_sev*1.34+
+          predicted_ot_freq*0.57*predicted_ot_sev*2.70+
+          predicted_ws_freq*0.83*predicted_ws_sev*1.24+
+          18
+      end as predicted_bc
 
     FROM
       (
@@ -44,6 +61,7 @@ view: expoclm {
             e.inception_strategy,
             e.origin,
             e.policy_type,
+            e.transaction_type,
             to_timestamp(e.inception) as inception,
             to_timestamp(e.termincep) as termincep,
             e.aauicl_tenure,
@@ -106,6 +124,7 @@ view: expoclm {
             ra.ad_ra_update,
             ra.tp_ra_update,
             ra.pi_ra_update,
+            cov.quote_dttm,
             case when ncdp = 'N' then res.predicted_ad_freq_an*1.11 else res.predicted_ad_freq_ap*1.11 end as predicted_ad_freq,
             case when ncdp = 'N' then res.predicted_ad_sev_an*1.25 else res.predicted_ad_sev_ap*1.25 end as predicted_ad_sev,
             case when ncdp = 'N' then res.predicted_pi_freq_an*1.06 else res.predicted_pi_freq_ap*1.06 end as predicted_pi_freq,
@@ -159,6 +178,9 @@ view: expoclm {
          left join
               ra_update ra
               on ra.postcode_sector = left(replace(e.postcode,' ',''),length(replace(e.postcode,' ',''))-2)
+         left join
+              qs_cover cov
+              on e.quote_id = cov.quote_id AND e.quote_id != ' ' AND to_date(cov.quote_dttm) != '2999-12-31' AND e.quote_id IS NOT NULL
       )f
      ;;
   }
@@ -168,14 +190,46 @@ view: expoclm {
     timeframes: [
       month,
       quarter,
-      year
+      year,
+      week
     ]
     sql: ${TABLE}.inception ;;
+  }
+
+  dimension_group: term_inception {
+    type: time
+    timeframes: [
+      month,
+      quarter,
+      year,
+      week
+    ]
+    sql: ${TABLE}.termincep ;;
+    }
+
+  dimension_group: quote_date {
+    type: time
+    timeframes: [
+      month,
+      quarter,
+      year,
+      week
+    ]
+    sql: ${TABLE}.quote_dttm ;;
   }
 
   dimension: Accident_Quarter {
     type: date_quarter
     sql: ${TABLE}.acc_quarter ;;
+
+    }
+
+  dimension: member_score {
+    type: tier
+    tiers:[0, 0.8, 0.9, 1, 1.1]
+    style: relational
+    sql: ${TABLE}.member_score_unbanded ;;
+
   }
 
   dimension: Underwriting_Year {
@@ -201,6 +255,12 @@ view: expoclm {
   dimension: policy_type {
     type: string
     sql: ${TABLE}.policy_type ;;
+  }
+
+
+  dimension: transaction_type {
+    type: string
+    sql: ${TABLE}.transaction_type ;;
   }
 
   dimension: aauicl_tenure {
@@ -869,6 +929,11 @@ dimension: holdout_aug18 {
     value_format_name: percent_1
   }
 
+  measure: pred_written_loss_ratio_resv3 {
+    type: number
+    sql: sum(predicted_incurred_resv3)/nullif(sum(case when predicted_incurred_resv3 > 0 then net_premium else 0 end),0) ;;
+    value_format_name: percent_1
+  }
 
   measure: pred_loss_ratio_aug18 {
     type: number
@@ -1089,4 +1154,11 @@ dimension: holdout_aug18 {
   }
 
 
-}
+  measure:  predicted_loss_ratio{
+    type: number
+    sql: avg(predicted_bc)/avg(net_premium) ;;
+
+
+  }
+
+  }
