@@ -239,12 +239,6 @@ view: expoclm {
     type: string
     sql: ${TABLE}.scheme ;;
 
-  }
-
-  dimension: conversion {
-    type: number
-    sql: ${TABLE}.conversion ;;
-
     }
 
   dimension: address_match {
@@ -788,6 +782,12 @@ dimension: holdout_aug18 {
   measure: pi_incurred {
     type: sum
     sql:pi_incurred_cap_25k  ;;
+
+  }
+
+    dimension: conversion {
+      type: number
+      sql: ${TABLE}.conversion ;;
 
   }
 
