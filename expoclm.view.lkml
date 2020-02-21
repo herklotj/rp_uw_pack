@@ -785,7 +785,7 @@ dimension: holdout_aug18 {
 
   }
 
-    dimension: conversion {
+    measure: conversion {
       type: number
       sql: ${TABLE}.conversion ;;
 
