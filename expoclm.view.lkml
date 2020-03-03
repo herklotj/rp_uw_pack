@@ -380,6 +380,13 @@ view: expoclm {
     sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.dob_d1)/12) ;;
   }
 
+  dimension: policyholder_age_2 {
+    type: tier
+    tiers: [25,26,27,28,29,30,40,50,60,70,80]
+    style: integer
+    sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.dob_d1)/12) ;;
+  }
+
   dimension: policyholder_licence_years {
     type: tier
     tiers: [2,5,10]
