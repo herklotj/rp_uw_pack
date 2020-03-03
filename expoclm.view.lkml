@@ -474,7 +474,7 @@ view: expoclm {
   }
 
   dimension: min_age_2 {
-    label: "Minimum Age"
+    label: "Minimum Age 2"
     type: tier
     tiers: [25,26,27,28,29,30,40,50,60,70,80]
     style: integer
