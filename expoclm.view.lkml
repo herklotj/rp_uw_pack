@@ -473,6 +473,14 @@ view: expoclm {
     sql: ${TABLE}.min_age ;;
   }
 
+  dimension: min_age_2 {
+    label: "Minimum Age"
+    type: tier
+    tiers: [25,26,27,28,29,30,40,50,60,70,80]
+    style: integer
+    sql: ${TABLE}.min_age ;;
+  }
+
   dimension: ppopulationdensity {
     label: "Population Density"
     type: number
