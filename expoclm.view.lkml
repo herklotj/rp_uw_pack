@@ -238,7 +238,7 @@ view: expoclm {
     type: tier
     tiers: [1,2,5,10]
     style: integer
-    sql: year(rco1_coverstartdate1)-${TABLE}.rveti1_yearofregistration1 ;;
+    sql: year(termincep)-${TABLE}.rveti1_yearofregistration1 ;;
   }
 
   dimension: manufacturer {
@@ -259,7 +259,7 @@ view: expoclm {
     type: tier
     tiers: [1,2,5,10]
     style: integer
-    sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.purchase_dttm_)/12) ;;
+    sql: floor(months_between(termincep, ${TABLE}.purchase_dttm_)/12) ;;
   }
 
   dimension: ad_rated_area {
@@ -378,28 +378,28 @@ view: expoclm {
     type: tier
     tiers: [30,40,50,60,70,75,80]
     style: integer
-    sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.dob_d1)/12) ;;
+    sql: floor(months_between(${TABLE}.termincep, ${TABLE}.dob_d1)/12) ;;
   }
 
   dimension: policyholder_age_2 {
     type: tier
     tiers: [25,26,27,28,29,30,40,50,60,70,80]
     style: integer
-    sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.dob_d1)/12) ;;
+    sql: floor(months_between(${TABLE}.termincep, ${TABLE}.dob_d1)/12) ;;
   }
 
   dimension: max_age {
     type: tier
     tiers: [30,40,50,60,70,75,80]
     style: integer
-    sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.min_dob)/12) ;;
+    sql: floor(months_between(${TABLE}.termincep, ${TABLE}.min_dob)/12) ;;
   }
 
   dimension: policyholder_licence_years {
     type: tier
     tiers: [2,5,10]
     style: integer
-    sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.rpr1_mld1_licencequalifyingdate1)/12) ;;
+    sql: floor(months_between(${TABLE}.termincep, ${TABLE}.rpr1_mld1_licencequalifyingdate1)/12) ;;
   }
 
   dimension: ncd_years {
