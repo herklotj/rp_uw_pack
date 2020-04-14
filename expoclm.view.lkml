@@ -81,6 +81,7 @@ view: expoclm {
             e.f_claims_5yrs,
             e.nf_claims_5yrs,
             e.dob_d1,
+            LEAST(dob_d1,dob_d2,dob_d3,dob_d4,dob_d5) as min_dob,
             e.rpr1_mld1_licencequalifyingdate1,
             e.ncd_years,
             e.financial_year,
@@ -385,6 +386,13 @@ view: expoclm {
     tiers: [25,26,27,28,29,30,40,50,60,70,80]
     style: integer
     sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.dob_d1)/12) ;;
+  }
+
+  dimension: max_age {
+    type: tier
+    tiers: [30,40,50,60,70,75,80]
+    style: integer
+    sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.min_dob)/12) ;;
   }
 
   dimension: policyholder_licence_years {
