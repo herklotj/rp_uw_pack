@@ -635,7 +635,7 @@ dimension: holdout_aug18 {
   measure: exposure {
     type: sum
     sql: ${TABLE}.evy ;;
-    value_format_name: decimal_0
+    value_format: "0"
   }
 
   measure: exposure_mix {
