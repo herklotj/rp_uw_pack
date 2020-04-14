@@ -375,7 +375,7 @@ view: expoclm {
 
   dimension: policyholder_age {
     type: tier
-    tiers: [30,40,50,60,70,80]
+    tiers: [30,40,50,60,70,75,80]
     style: integer
     sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.dob_d1)/12) ;;
   }
