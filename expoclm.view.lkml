@@ -167,6 +167,8 @@ view: expoclm {
   dimension_group: inception {
     type: time
     timeframes: [
+      date,
+      week,
       month,
       quarter,
       year
