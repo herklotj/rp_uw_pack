@@ -10,4 +10,6 @@ datagroup: uw_pack_default_datagroup {
 
 persist_with: uw_pack_default_datagroup
 
+explore: icepoclm {}
+
 explore: expoclm {}

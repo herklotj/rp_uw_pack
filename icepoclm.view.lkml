@@ -1,4 +1,4 @@
-view: expoclm {
+view: icepoclm {
   derived_table: {
     sql:
     SELECT
@@ -140,7 +140,7 @@ view: expoclm {
             e.originator_name,
             e.uwyr
          FROM
-            expoclm_quarters e
+            icepoclm e
          left join
               aapricing.uncalibrated_scores_aug18 aug
               on left(e.quote_id, 36) = left(aug.quote_id, 36)
@@ -162,7 +162,6 @@ view: expoclm {
       )f
      ;;
   }
-
   dimension: polnum {
     type:  string
     sql:  ${TABLE}.polnum ;;
@@ -516,13 +515,13 @@ view: expoclm {
     sql: ${TABLE}.leadtime;;
   }
 
- dimension: aug18vresv3_bc {
+  dimension: aug18vresv3_bc {
     type: number
     sql: round(
                 case when (predicted_incurred_aug18/ nullif(predicted_incurred_resv3,0)-1) > 1 then 1 else round( (predicted_incurred_aug18/ nullif(predicted_incurred_resv3,0)-1) ,1.0) end
                 ,1.0)
                 ;;
- }
+  }
 
   dimension: jul19credvaug18_bc {
     type: number
@@ -541,7 +540,7 @@ view: expoclm {
   }
 
 
-dimension: aug18vresv3_adf {
+  dimension: aug18vresv3_adf {
     type: number
     sql: round(
                 case when (predicted_ad_freq_aug18/ nullif(predicted_ad_freq,0)-1) > 1 then 1 else round( (predicted_ad_freq_aug18/ nullif(predicted_ad_freq,0)-1) ,1.0) end
@@ -549,7 +548,7 @@ dimension: aug18vresv3_adf {
                 ;;
   }
 
-dimension: aug18vresv3_ads {
+  dimension: aug18vresv3_ads {
     type: number
     sql: round(
                 case when (predicted_ad_sev_aug18/ nullif(predicted_ad_sev,0)-1) > 1 then 1 else round( (predicted_ad_sev_aug18/ nullif(predicted_ad_sev,0)-1) ,1.0) end
@@ -615,15 +614,15 @@ dimension: aug18vresv3_ads {
   }
 
 
-dimension: scores_attached {
+  dimension: scores_attached {
     type: string
     sql: risk_scores ;;
-}
+  }
 
-dimension: holdout_aug18 {
+  dimension: holdout_aug18 {
     type: string
     sql: holdout_aug18 ;;
-}
+  }
 
   dimension: holdout_jul19 {
     type: string
