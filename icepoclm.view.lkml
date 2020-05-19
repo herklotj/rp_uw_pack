@@ -1,4 +1,4 @@
-view: expoclm {
+view: icepoclm {
   derived_table: {
     sql:
     SELECT
@@ -26,33 +26,13 @@ view: expoclm {
           as predicted_incurred_jul19cred,
         case when predicted_ad_freq_aug18 > 0 and predicted_ad_freq > 0 then 'Y' else 'N' end as risk_scores,
         case when termincep >'2018-08-01' then 'Post Aug18' else 'Pre Aug18' end as holdout_aug18,
-        case when termincep >'2019-01-01' then 'Post Jul19' else 'Pre Jul19' end as holdout_jul19,
-
-        case
-        when transaction_type in ('CrossQuote', 'Renewal') then
-          predicted_ad_freq*1.08*predicted_ad_sev*1.24+
-          predicted_pi_freq*1.19*predicted_pi_sev*0.86+
-          predicted_tp_freq*0.97*predicted_tp_sev*1.30+
-          predicted_ot_freq*0.73*predicted_ot_sev*2.02+
-          predicted_ws_freq*0.82*predicted_ws_sev*1.28+
-          18
-        else
-          predicted_ad_freq*1.07*predicted_ad_sev*1.21+
-          predicted_pi_freq*0.95*predicted_pi_sev*0.85+
-          predicted_tp_freq*0.84*predicted_tp_sev*1.34+
-          predicted_ot_freq*0.57*predicted_ot_sev*2.70+
-          predicted_ws_freq*0.83*predicted_ws_sev*1.24+
-          18
-      end as predicted_bc
+        case when termincep >'2019-01-01' then 'Post Jul19' else 'Pre Jul19' end as holdout_jul19
 
     FROM
       (
       SELECT
             e.polnum,
-            e.add_match,
-            e.delphi_score,
             e.scheme_number,
-            e.scheme,
             e.evy,
             e.exposure_asat,
             e.exposure_start,
@@ -64,7 +44,6 @@ view: expoclm {
             e.inception_strategy,
             e.origin,
             e.policy_type,
-            e.transaction_type,
             to_timestamp(e.inception) as inception,
             to_timestamp(e.termincep) as termincep,
             e.aauicl_tenure,
@@ -102,7 +81,6 @@ view: expoclm {
             e.f_claims_5yrs,
             e.nf_claims_5yrs,
             e.dob_d1,
-            LEAST(dob_d1,dob_d2,dob_d3,dob_d4,dob_d5) as min_dob,
             e.rpr1_mld1_licencequalifyingdate1,
             e.ncd_years,
             e.financial_year,
@@ -117,7 +95,6 @@ view: expoclm {
             e.engine_size,
             e.e0ved1_kcd1_numberpreviouskeepers1,
             e.vol_xs,
-            e.age_mem_yrs,
             e.member_score_unbanded,
             e.parking_type,
             e.ppopulationdensity,
@@ -129,12 +106,6 @@ view: expoclm {
             ra.ad_ra_update,
             ra.tp_ra_update,
             ra.pi_ra_update,
-            cov.quote_dttm,
-            rreh1_requestdatetime1,
-            occupation_type_d1,
-            occupation_type_d2,
-            occupation_type_d3,
-            occupation_type_d4,
             case when ncdp = 'N' then res.predicted_ad_freq_an*1.11 else res.predicted_ad_freq_ap*1.11 end as predicted_ad_freq,
             case when ncdp = 'N' then res.predicted_ad_sev_an*1.25 else res.predicted_ad_sev_ap*1.25 end as predicted_ad_sev,
             case when ncdp = 'N' then res.predicted_pi_freq_an*1.06 else res.predicted_pi_freq_ap*1.06 end as predicted_pi_freq,
@@ -167,40 +138,9 @@ view: expoclm {
             case when ncdp = 'N' then jcred.predicted_ws_freq_an*jcredsc.WS_F else jcred.predicted_ws_freq_ap*jcredsc.WS_F end * 0.895 as predicted_ws_freq_jul19cred,
             case when ncdp = 'N' then jcred.predicted_ws_sev_an*jcredsc.WS_S else jcred.predicted_ws_sev_ap*jcredsc.WS_S end * 1.22 as predicted_ws_sev_jul19cred,
             e.originator_name,
-            e.uwyr,
-            case when timestampdiff (YEAR,dob_d1,sysdate) > 70  OR timestampdiff (YEAR,dob_d2,sysdate) > 70 OR timestampdiff (YEAR,dob_d3,sysdate) > 70 OR timestampdiff (YEAR,dob_d4,sysdate) > 70 then 1 else 0 end as age_70_flag,
-            case when (f_claims_5yrs + policy_convictions_5yrs = 1) then 1 else 0 end as claim_conv_1,
-            case when timestampdiff (YEAR,dob_d1,sysdate) > 70 AND (d1_claims >= 1 OR timestampdiff (YEAR,conviction_date_d1_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn5,sysdate) < 5) then 1
-            when timestampdiff (YEAR,dob_d2,sysdate) > 70 AND (d2_claims >= 1 OR timestampdiff (YEAR,conviction_date_d2_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn5,sysdate) < 5) then 1
-            when timestampdiff (YEAR,dob_d3,sysdate) > 70 AND (d3_claims >= 1 OR timestampdiff (YEAR,conviction_date_d3_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn5,sysdate) < 5) then 1
-            when timestampdiff (YEAR,dob_d4,sysdate) > 70 AND (d4_claims >= 1 OR timestampdiff (YEAR,conviction_date_d4_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn5,sysdate) < 5) then 1 else 0 end as d70_fail,
-            case when occupation_type_d1 != 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d2 IN ('S', 'W') AND occupation_type_d2 = 'U03')
-            AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
-            when occupation_type_d1 != 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d3 IN ('S', 'W') AND occupation_type_d3 = 'U03')
-            AND (occupation_type_d2 != 'U03' OR occupation_type_d2 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
-            when occupation_type_d1 != 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d4 IN ('S', 'W') AND occupation_type_d4 = 'U03')
-            AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d2 != 'U03' OR occupation_type_d2 IS NULL) then 1      else 0 end as business_rule_2,
-            case when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d2 IN ('S', 'W') AND occupation_type_d2 != 'U03')
-            AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
-            when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d3 IN ('S', 'W') AND occupation_type_d3 != 'U03')
-            AND (occupation_type_d2 != 'U03' OR occupation_type_d2 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
-            when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d4 IN ('S', 'W') AND occupation_type_d4 != 'U03')
-            AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d2 != 'U03' OR occupation_type_d2 IS NULL) then 1     else 0 end as business_rule_3,
-            case when f_claims_5yrs = 1 AND policy_convictions_5yrs = 1 then 1 else 0 end as claim_conv_2,
-            case when d1_claims = 1 AND (timestampdiff (YEAR,conviction_date_d1_cn1,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d1_cn2,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d1_cn3,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d1_cn4,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d1_cn5,sysdate) < 5 ) then 1
-            when d2_claims = 1 AND (timestampdiff (YEAR,conviction_date_d2_cn1,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d2_cn2,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d2_cn3,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d2_cn4,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d2_cn5,sysdate) < 5 ) then 1
-            when d3_claims = 1 AND (timestampdiff (YEAR,conviction_date_d3_cn1,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d3_cn2,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d3_cn3,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d3_cn4,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d3_cn5,sysdate) < 5 ) then 1
-            when d4_claims = 1 AND (timestampdiff (YEAR,conviction_date_d4_cn1,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d4_cn2,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d4_cn3,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d4_cn4,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d4_cn5,sysdate) < 5 ) then 1
-            else 0 end as d_fail,
-            case when timestampdiff (YEAR,dob_d1,sysdate) BETWEEN 76 AND 79  OR timestampdiff (YEAR,dob_d2,sysdate) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d3,sysdate) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d4,sysdate) BETWEEN 76 AND 79 then 1 else 0 end as age_79_flag,
-            case when timestampdiff (YEAR,dob_d1,sysdate) BETWEEN 76 AND 79 AND (d1_claims >= 1 OR timestampdiff (YEAR,conviction_date_d1_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn5,sysdate) < 5) then 1
-            when timestampdiff (YEAR,dob_d2,sysdate) BETWEEN 76 AND 79 AND (d2_claims >= 1 OR timestampdiff (YEAR,conviction_date_d2_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn5,sysdate) < 5) then 1
-            when timestampdiff (YEAR,dob_d3,sysdate) BETWEEN 76 AND 79 AND (d3_claims >= 1 OR timestampdiff (YEAR,conviction_date_d3_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn5,sysdate) < 5) then 1
-            when timestampdiff (YEAR,dob_d4,sysdate) BETWEEN 76 AND 79 AND (d4_claims >= 1 OR timestampdiff (YEAR,conviction_date_d4_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn5,sysdate) < 5) then 1 else 0 end as d79_fail
-
-
+            e.uwyr
          FROM
-            expoclm_quarters e
+            icepoclm e
          left join
               aapricing.uncalibrated_scores_aug18 aug
               on left(e.quote_id, 36) = left(aug.quote_id, 36)
@@ -219,13 +159,9 @@ view: expoclm {
          left join
               ra_update ra
               on ra.postcode_sector = left(replace(e.postcode,' ',''),length(replace(e.postcode,' ',''))-2)
-         left join
-              qs_cover cov
-              on e.quote_id = cov.quote_id AND e.quote_id != ' ' AND to_date(cov.quote_dttm) != '2999-12-31' AND e.quote_id IS NOT NULL
       )f
      ;;
   }
-
   dimension: polnum {
     type:  string
     sql:  ${TABLE}.polnum ;;
@@ -242,8 +178,6 @@ view: expoclm {
   dimension_group: inception {
     type: time
     timeframes: [
-      date,
-      week,
       month,
       quarter,
       year
@@ -251,80 +185,9 @@ view: expoclm {
     sql: ${TABLE}.inception ;;
   }
 
-  dimension_group: request_date {
-    type: time
-    timeframes: [
-      month,
-      quarter,
-      year,
-      week
-    ]
-    sql: ${TABLE}.rreh1_requestdatetime1 ;;
-  }
-
-  dimension_group: term_inception {
-    type: time
-    timeframes: [
-      month,
-      quarter,
-      year,
-      week
-    ]
-    sql: ${TABLE}.termincep ;;
-    }
-
-  dimension_group: quote_date {
-    type: time
-    timeframes: [
-      month,
-      quarter,
-      year,
-      week
-    ]
-    sql: ${TABLE}.quote_dttm ;;
-  }
-
   dimension: Accident_Quarter {
     type: date_quarter
     sql: ${TABLE}.acc_quarter ;;
-
-  }
-
-  dimension: age_mem_years {
-    type: string
-    sql: ${TABLE}.age_mem_yrs ;;
-
-  }
-
-  dimension: scheme {
-    type: string
-    sql: ${TABLE}.scheme ;;
-
-    }
-
-
-  dimension: address_match {
-    type: string
-    sql: ${TABLE}.add_match ;;
-
-
-  }
-
-  dimension: delphi_score {
-    type: tier
-    tiers: [700, 800, 875]
-    style: relational
-    sql: ${TABLE}.delphi_score ;;
-
-  }
-
-
-  dimension: member_score {
-    type: tier
-    tiers:[0, 0.8, 0.9, 1, 1.1]
-    style: relational
-    sql: ${TABLE}.member_score_unbanded ;;
-
   }
 
   dimension: Underwriting_Year {
@@ -352,11 +215,6 @@ view: expoclm {
     sql: ${TABLE}.policy_type ;;
   }
 
-  dimension: transaction_type {
-    type: string
-    sql: ${TABLE}.transaction_type ;;
-  }
-
   dimension: aauicl_tenure {
     label: "AAUICL Tenure"
     type: string
@@ -381,7 +239,7 @@ view: expoclm {
 
   dimension: vehicle_value {
     type: tier
-    tiers: [500, 1500, 5000, 10000,20000,40000]
+    tiers: [1000,5000,10000,20000,40000]
     style: integer
     sql: ${TABLE}.value ;;
     value_format_name: gbp_0
@@ -389,9 +247,9 @@ view: expoclm {
 
   dimension: vehicle_age {
     type: tier
-    tiers: [0, 4, 8, 12]
+    tiers: [1,2,5,10]
     style: integer
-    sql: year(termincep)-${TABLE}.rveti1_yearofregistration1 ;;
+    sql: year(rco1_coverstartdate1)-${TABLE}.rveti1_yearofregistration1 ;;
   }
 
   dimension: manufacturer {
@@ -410,9 +268,9 @@ view: expoclm {
 
   dimension: ownership_years {
     type: tier
-    tiers: [0, 1, 4, 8]
+    tiers: [1,2,5,10]
     style: integer
-    sql: floor(months_between(termincep, ${TABLE}.purchase_dttm_)/12) ;;
+    sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.purchase_dttm_)/12) ;;
   }
 
   dimension: ad_rated_area {
@@ -426,7 +284,7 @@ view: expoclm {
   dimension: pi_rated_area {
     label: "PI Rated Area"
     type: tier
-    tiers: [0, 20, 30, 40]
+    tiers: [20,30,40,50]
     style: integer
     sql: ${TABLE}.pi_rated_area ;;
   }
@@ -434,7 +292,7 @@ view: expoclm {
   dimension: tp_rated_area {
     label: "TP Rated Area"
     type: tier
-    tiers: [0, 10, 20, 30, 40, 50]
+    tiers: [20,30,40,50]
     style: integer
     sql: ${TABLE}.tp_rated_area ;;
   }
@@ -529,36 +387,29 @@ view: expoclm {
 
   dimension: policyholder_age {
     type: tier
-    tiers: [30,40,50,60,70,75,80]
+    tiers: [30,40,50,60,70,80]
     style: integer
-    sql: floor(months_between(${TABLE}.termincep, ${TABLE}.dob_d1)/12) ;;
+    sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.dob_d1)/12) ;;
   }
 
   dimension: policyholder_age_2 {
     type: tier
     tiers: [25,26,27,28,29,30,40,50,60,70,80]
     style: integer
-    sql: floor(months_between(${TABLE}.termincep, ${TABLE}.dob_d1)/12) ;;
-  }
-
-  dimension: max_age {
-    type: tier
-    tiers: [30,40,50,60,70,75,80]
-    style: integer
-    sql: floor(months_between(${TABLE}.termincep, ${TABLE}.min_dob)/12) ;;
+    sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.dob_d1)/12) ;;
   }
 
   dimension: policyholder_licence_years {
     type: tier
     tiers: [2,5,10]
     style: integer
-    sql: floor(months_between(${TABLE}.termincep, ${TABLE}.rpr1_mld1_licencequalifyingdate1)/12) ;;
+    sql: floor(months_between(${TABLE}.rco1_coverstartdate1, ${TABLE}.rpr1_mld1_licencequalifyingdate1)/12) ;;
   }
 
   dimension: ncd_years {
     label: "NCD Years"
     type: tier
-    tiers: [0, 1, 4, 9]
+    tiers: [2,5,9]
     style: integer
     sql: ${TABLE}.ncd_years ;;
   }
@@ -659,19 +510,18 @@ view: expoclm {
   dimension: leadtime {
     label: "Lead Time"
     type: tier
-    tiers: [0, 1, 4, 10, 20]
+    tiers: [1,3,5,10,15,20,25,30]
     style: integer
     sql: ${TABLE}.leadtime;;
   }
 
-
- dimension: aug18vresv3_bc {
+  dimension: aug18vresv3_bc {
     type: number
     sql: round(
                 case when (predicted_incurred_aug18/ nullif(predicted_incurred_resv3,0)-1) > 1 then 1 else round( (predicted_incurred_aug18/ nullif(predicted_incurred_resv3,0)-1) ,1.0) end
                 ,1.0)
                 ;;
- }
+  }
 
   dimension: jul19credvaug18_bc {
     type: number
@@ -690,7 +540,7 @@ view: expoclm {
   }
 
 
-dimension: aug18vresv3_adf {
+  dimension: aug18vresv3_adf {
     type: number
     sql: round(
                 case when (predicted_ad_freq_aug18/ nullif(predicted_ad_freq,0)-1) > 1 then 1 else round( (predicted_ad_freq_aug18/ nullif(predicted_ad_freq,0)-1) ,1.0) end
@@ -698,7 +548,7 @@ dimension: aug18vresv3_adf {
                 ;;
   }
 
-dimension: aug18vresv3_ads {
+  dimension: aug18vresv3_ads {
     type: number
     sql: round(
                 case when (predicted_ad_sev_aug18/ nullif(predicted_ad_sev,0)-1) > 1 then 1 else round( (predicted_ad_sev_aug18/ nullif(predicted_ad_sev,0)-1) ,1.0) end
@@ -764,25 +614,15 @@ dimension: aug18vresv3_ads {
   }
 
 
-
-  dimension: Footprint_expansion{
-    type: number
-    sql: case when age_70_flag = 1 AND claim_conv_1 = 1 AND d70_fail = 0 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' then 1 when (business_rule_2 = 1 OR business_rule_3 = 1) AND scheme_number = 102 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' then 2 when to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' AND d_fail = 0 AND claim_conv_2 = 1 AND scheme_number = 103 then 3 when age_79_flag = 1 AND d79_fail = 0 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' AND scheme_number = 103 then 4 else 0 end
-      ;;
-  }
-
-
-
-
-dimension: scores_attached {
+  dimension: scores_attached {
     type: string
     sql: risk_scores ;;
-}
+  }
 
-dimension: holdout_aug18 {
+  dimension: holdout_aug18 {
     type: string
     sql: holdout_aug18 ;;
-}
+  }
 
   dimension: holdout_jul19 {
     type: string
@@ -798,7 +638,8 @@ dimension: holdout_aug18 {
 
   measure: exposure {
     type: sum
-    value_format: "0"
+    sql: ${TABLE}.evy ;;
+    value_format_name: decimal_0
   }
 
   measure: exposure_mix {
@@ -875,12 +716,6 @@ dimension: holdout_aug18 {
   measure: pi_incurred {
     type: sum
     sql:pi_incurred_cap_25k  ;;
-
-  }
-
-    measure: conversion {
-      type: number
-      sql: ${TABLE}.conversion ;;
 
   }
 
@@ -1061,11 +896,6 @@ dimension: holdout_aug18 {
     value_format_name: percent_1
   }
 
-  measure: pred_written_loss_ratio_resv3 {
-    type: number
-    sql: sum(predicted_incurred_resv3)/nullif(sum(case when predicted_incurred_resv3 > 0 then net_premium else 0 end),0) ;;
-    value_format_name: percent_1
-  }
 
   measure: pred_loss_ratio_aug18 {
     type: number
@@ -1286,11 +1116,4 @@ dimension: holdout_aug18 {
   }
 
 
-  measure:  predicted_loss_ratio{
-    type: number
-    sql: avg(predicted_bc)/avg(net_premium) ;;
-
-
-  }
-
-  }
+}
