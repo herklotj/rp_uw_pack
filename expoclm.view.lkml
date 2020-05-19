@@ -168,36 +168,22 @@ view: expoclm {
             case when ncdp = 'N' then jcred.predicted_ws_sev_an*jcredsc.WS_S else jcred.predicted_ws_sev_ap*jcredsc.WS_S end * 1.22 as predicted_ws_sev_jul19cred,
             e.originator_name,
             e.uwyr,
-            case when timestampdiff (YEAR,dob_d1,sysdate) > 70  OR timestampdiff (YEAR,dob_d2,sysdate) > 70 OR timestampdiff (YEAR,dob_d3,sysdate) > 70 OR timestampdiff (YEAR,dob_d4,sysdate) > 70 then 1 else 0 end as age_70_flag,
-            case when (f_claims_5yrs + policy_convictions_5yrs = 1) then 1 else 0 end as claim_conv_1,
-            case when timestampdiff (YEAR,dob_d1,sysdate) > 70 AND (d1_claims >= 1 OR timestampdiff (YEAR,conviction_date_d1_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn5,sysdate) < 5) then 1
-            when timestampdiff (YEAR,dob_d2,sysdate) > 70 AND (d2_claims >= 1 OR timestampdiff (YEAR,conviction_date_d2_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn5,sysdate) < 5) then 1
-            when timestampdiff (YEAR,dob_d3,sysdate) > 70 AND (d3_claims >= 1 OR timestampdiff (YEAR,conviction_date_d3_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn5,sysdate) < 5) then 1
-            when timestampdiff (YEAR,dob_d4,sysdate) > 70 AND (d4_claims >= 1 OR timestampdiff (YEAR,conviction_date_d4_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn5,sysdate) < 5) then 1 else 0 end as d70_fail,
+            case when timestampdiff (YEAR,dob_d1,rco1_coverstartdate1) >= 70  OR timestampdiff (YEAR,dob_d2,rco1_coverstartdate1) >= 70 OR timestampdiff (YEAR,dob_d3,rco1_coverstartdate1) >= 70 OR timestampdiff (YEAR,dob_d4,rco1_coverstartdate1) >= 70 then 1 else 0 end as age_70_flag,
+            case when (f_claims_5yrs + policy_convictions_5yrs >= 1) then 1 else 0 end as claim_conv_1,
             case when occupation_type_d1 != 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d2 IN ('S', 'W') AND occupation_type_d2 = 'U03')
             AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
             when occupation_type_d1 != 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d3 IN ('S', 'W') AND occupation_type_d3 = 'U03')
             AND (occupation_type_d2 != 'U03' OR occupation_type_d2 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
             when occupation_type_d1 != 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d4 IN ('S', 'W') AND occupation_type_d4 = 'U03')
             AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d2 != 'U03' OR occupation_type_d2 IS NULL) then 1      else 0 end as business_rule_2,
-            case when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d2 IN ('S', 'W') AND occupation_type_d2 != 'U03')
+            case when f_claims_5yrs = 1 AND policy_convictions_5yrs = 1 then 1 else 0 end as claim_conv_2,
+            case when timestampdiff (YEAR,dob_d1,rco1_coverstartdate1) BETWEEN 76 AND 79  OR timestampdiff (YEAR,dob_d2,rco1_coverstartdate1) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d3,rco1_coverstartdate1) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d4,rco1_coverstartdate1) BETWEEN 76 AND 79 then 1 else 0 end as age_79_flag
+            /*case when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d2 IN ('S', 'W') AND occupation_type_d2 != 'U03')
             AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
             when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d3 IN ('S', 'W') AND occupation_type_d3 != 'U03')
             AND (occupation_type_d2 != 'U03' OR occupation_type_d2 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
             when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d4 IN ('S', 'W') AND occupation_type_d4 != 'U03')
-            AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d2 != 'U03' OR occupation_type_d2 IS NULL) then 1     else 0 end as business_rule_3,
-            case when f_claims_5yrs = 1 AND policy_convictions_5yrs = 1 then 1 else 0 end as claim_conv_2,
-            case when d1_claims = 1 AND (timestampdiff (YEAR,conviction_date_d1_cn1,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d1_cn2,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d1_cn3,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d1_cn4,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d1_cn5,sysdate) < 5 ) then 1
-            when d2_claims = 1 AND (timestampdiff (YEAR,conviction_date_d2_cn1,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d2_cn2,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d2_cn3,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d2_cn4,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d2_cn5,sysdate) < 5 ) then 1
-            when d3_claims = 1 AND (timestampdiff (YEAR,conviction_date_d3_cn1,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d3_cn2,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d3_cn3,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d3_cn4,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d3_cn5,sysdate) < 5 ) then 1
-            when d4_claims = 1 AND (timestampdiff (YEAR,conviction_date_d4_cn1,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d4_cn2,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d4_cn3,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d4_cn4,sysdate) < 5  OR timestampdiff (YEAR,conviction_date_d4_cn5,sysdate) < 5 ) then 1
-            else 0 end as d_fail,
-            case when timestampdiff (YEAR,dob_d1,sysdate) BETWEEN 76 AND 79  OR timestampdiff (YEAR,dob_d2,sysdate) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d3,sysdate) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d4,sysdate) BETWEEN 76 AND 79 then 1 else 0 end as age_79_flag,
-            case when timestampdiff (YEAR,dob_d1,sysdate) BETWEEN 76 AND 79 AND (d1_claims >= 1 OR timestampdiff (YEAR,conviction_date_d1_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d1_cn5,sysdate) < 5) then 1
-            when timestampdiff (YEAR,dob_d2,sysdate) BETWEEN 76 AND 79 AND (d2_claims >= 1 OR timestampdiff (YEAR,conviction_date_d2_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d2_cn5,sysdate) < 5) then 1
-            when timestampdiff (YEAR,dob_d3,sysdate) BETWEEN 76 AND 79 AND (d3_claims >= 1 OR timestampdiff (YEAR,conviction_date_d3_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d3_cn5,sysdate) < 5) then 1
-            when timestampdiff (YEAR,dob_d4,sysdate) BETWEEN 76 AND 79 AND (d4_claims >= 1 OR timestampdiff (YEAR,conviction_date_d4_cn1,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn2,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn3,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn4,sysdate) < 5 OR timestampdiff (YEAR,conviction_date_d4_cn5,sysdate) < 5) then 1 else 0 end as d79_fail
-
+            AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d2 != 'U03' OR occupation_type_d2 IS NULL) then 1     else 0 end as business_rule_3,*/
 
          FROM
             expoclm_quarters e
@@ -765,12 +751,30 @@ dimension: aug18vresv3_ads {
 
 
 
-  dimension: Footprint_expansion{
+  dimension: claims_conv_70_plus_bs{
     type: number
-    sql: case when age_70_flag = 1 AND claim_conv_1 = 1 AND d70_fail = 0 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' then 1 when (business_rule_2 = 1 OR business_rule_3 = 1) AND scheme_number = 102 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' then 2 when to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' AND d_fail = 0 AND claim_conv_2 = 1 AND scheme_number = 103 then 3 when age_79_flag = 1 AND d79_fail = 0 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' AND scheme_number = 103 then 4 else 0 end
+    sql:  case when age_70_flag = 1 AND claim_conv_1 = 1 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' then 1 else 0 end
       ;;
   }
 
+  dimension: occupation_bs{
+    type: number
+    sql:  case when business_rule_2 = 1 AND scheme_number = 102 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' then 1 else 0 end
+      ;;
+  }
+
+  dimension: claims_conv_103{
+    type: number
+    sql:  case when to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' AND claim_conv_2 = 1 AND scheme_number = 103 then 1 else 0 end
+      ;;
+  }
+
+
+  dimension: max_age_bs{
+    type: number
+    sql:  case when age_79_flag = 1 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' AND scheme_number = 103 then 1 else 0 end
+      ;;
+  }
 
 
 
