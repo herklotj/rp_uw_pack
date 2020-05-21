@@ -753,27 +753,37 @@ dimension: aug18vresv3_ads {
 
   dimension: claims_conv_70_plus_bs{
     type: number
-    sql:  case when age_70_flag = 1 AND claim_conv_1 = 1 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' then 1 else 0 end
-      ;;
+    sql:  case when age_70_flag = 1 AND claim_conv_1 = 1 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' then 1 else 0 end ;;
+    description: "Allowing where there is a fault claim / conviction on the policy and an aged 70+ driver providing the aged 70+ is not the driver with claim / conviction (scheme 102 & 103)"
   }
 
   dimension: occupation_bs{
     type: number
-    sql:  case when business_rule_2 = 1 AND scheme_number = 102 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' then 1 else 0 end
-      ;;
+    sql:  case when business_rule_2 = 1 AND scheme_number = 102 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' then 1 else 0 end ;;
+    description: "Allowing unemployed partners / spouses where the PH is employed and a live member"
   }
 
   dimension: claims_conv_103{
     type: number
-    sql:  case when to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' AND claim_conv_2 = 1 AND scheme_number = 103 then 1 else 0 end
-      ;;
+    sql:  case when to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' AND claim_conv_2 = 1 AND scheme_number = 103 then 1 else 0 end ;;
+    description: "Allowing a policy with a fault claim and conviction providing they are on different drivers (scheme 103)"
+  }
+
+  dimension: claims_conv_102{
+    type: number
+    sql:  case when to_date(rreh1_requestdatetime1) >= '2019-02-06' AND transaction_type = 'New Business' AND claim_conv_2 = 1 AND scheme_number = 102 then 1 else 0 end ;;
   }
 
 
   dimension: max_age_bs{
     type: number
-    sql:  case when age_79_flag = 1 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' AND scheme_number = 103 then 1 else 0 end
-      ;;
+    sql:  case when age_79_flag = 1 AND to_date(rreh1_requestdatetime1) >= '2020-04-24' AND transaction_type = 'New Business' AND scheme_number = 103 then 1 else 0 end ;;
+    description: "Allowing up to 79 year olds with no fault claims or convictions (scheme 103)"
+  }
+
+  dimension: max_age_bs_102{
+    type: number
+    sql:  case when age_79_flag = 1  AND transaction_type = 'New Business' AND scheme_number = 102 then 1 else 0 end ;;
   }
 
 
