@@ -544,7 +544,7 @@ view: expoclm {
   dimension: ncd_years {
     label: "NCD Years"
     type: tier
-    tiers: [0, 1, 3, 6, 9]
+    tiers: [0, 1, 2, 3, 6, 9]
     style: integer
     sql: ${TABLE}.ncd_years ;;
   }
