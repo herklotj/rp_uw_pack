@@ -203,7 +203,7 @@ view: expoclm {
               motor_model_calibrations jcredsc
               on jcredsc.policy_start_month = date_trunc('month',e.termincep) and jcredsc.model='July_19_Cred_Pric' and jcredsc.end = '9999-01-01'
          left join
-              ra_update ra
+              rated_area_update ra
               on ra.postcode_sector = left(replace(e.postcode,' ',''),length(replace(e.postcode,' ',''))-2)
          left join
               qs_cover cov
