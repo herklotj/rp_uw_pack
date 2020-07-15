@@ -43,7 +43,14 @@ view: expoclm {
           predicted_ot_freq*0.57*predicted_ot_sev*2.70+
           predicted_ws_freq*0.83*predicted_ws_sev*1.24+
           18
-      end as predicted_bc
+      end as predicted_bc,
+      case when acc_quarter < '2019-01-01' then 'Pre 2019'
+             when acc_quarter < '2020-01-01' then '2019'
+             when acc_quarter < '2020-04-01' then '2020 1)Pre-lockdown'
+             when acc_quarter < '2020-07-01' then '2020 2)Lockdown'
+             when acc_quarter < '2021-01-01' then '2020 3)Post-Lockdown'
+             else 'Other'
+            end as Covid_Periods
 
     FROM
       (
@@ -275,6 +282,12 @@ view: expoclm {
     sql: ${TABLE}.acc_quarter ;;
 
   }
+
+  dimension: Covid_Periods {
+    type: string
+    sql: ${TABLE}.covid_periods;;
+  }
+
 
   dimension: age_mem_years {
     type: string
