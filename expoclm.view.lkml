@@ -52,11 +52,11 @@ view: expoclm {
              else 'Other'
             end as Covid_Periods,
 
-        case when termincep <= '2017-06-30' then 'XoL Period 1'
-              when termincep <= '2018-06-30' then 'XoL Period 2'
-              when termincep <= '2018-12-31' then 'XoL Period 3'
-              when termincep <= '2019-12-31' then 'XoL Period 4'
-              when termincep <= '2020-12-31' then 'XoL Period 5'
+        case when termincep <= '2017-06-30' then 'XoL Period 1 01/2016 to 06/2017'
+              when termincep <= '2018-06-30' then 'XoL Period 2 07/2017 to 06/2018'
+              when termincep <= '2018-12-31' then 'XoL Period 3 07/2018 to 12/2018'
+              when termincep <= '2019-12-31' then 'XoL Period 4 01/2019 to 12/2019'
+              when termincep <= '2020-12-31' then 'XoL Period 5 01/2020 to 12/2020'
               else 'Unknown'
            end as xol_period
 
@@ -69,6 +69,7 @@ view: expoclm {
            end as xol_prem
          ,case when total_incurred > 1000000 then total_incurred-1000000
               else 0 end as XoL_Incurred_xs1m
+
 
     FROM
       (
@@ -849,7 +850,7 @@ dimension: holdout_aug18 {
   measure: exposure {
     type: sum
     sql: ${TABLE}.evy ;;
-    value_format: "0"
+    value_format: "#,##0"
   }
 
   measure: exposure_mix {
@@ -1295,21 +1296,21 @@ dimension: holdout_aug18 {
 
   measure:  pi_xs_100k_freq{
     type: number
-    sql: sum(case when pi_incurred>=100000 then 1 else 0 end)/nullif(${exposure},0) ;;
+    sql: sum(case when pi_incurred>=100000 then 1.00000 else 0.00000 end)/nullif(${exposure},0) ;;
     value_format: "0.0000%"
 
   }
 
   measure:  pi_xs_1m_freq{
     type: number
-    sql: sum(case when pi_incurred>=1000000 then 1 else 0 end)/nullif(${exposure},0) ;;
+    sql: sum(case when pi_incurred>=1000000 then 1.00000 else 0.00000 end)/nullif(${exposure},0) ;;
     value_format: "0.0000%"
 
   }
 
   measure:  pi_xs_100k_count{
     type: number
-    sql: sum(case when pi_incurred>=100000 then 1 else 0 end) ;;
+    sql: sum(case when pi_incurred>=100000 then 1.00000 else 0.00000 end) ;;
 
 
   }
@@ -1324,10 +1325,12 @@ dimension: holdout_aug18 {
 
   measure:  pi_xs_50k_freq{
     type: number
-    sql: sum(case when pi_incurred>=50000 then 1 else 0 end)/nullif(${exposure},0) ;;
+    sql: sum(case when pi_incurred>=50000 then 1.00000 else 0.00000 end)/nullif(${exposure},0) ;;
     value_format: "0.0000%"
 
   }
+
+
 
   measure:  pi_xs_50k_count{
     type: number
@@ -1368,8 +1371,8 @@ dimension: holdout_aug18 {
 
   measure: XoL_XS1m_Freq {
     type: number
-    sql:sum(case when XoL_incurred_XS1m > 0 then 1.000000000 else 0.000000000 end)/sum(evy*1.000000000);;
-
+    sql: sum(case when pi_incurred>=1000000 then 1 else 0 end)/nullif(${exposure},0) ;;
+    value_format: "0.0000%"
 
   }
 
