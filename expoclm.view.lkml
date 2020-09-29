@@ -50,7 +50,25 @@ view: expoclm {
              when acc_quarter < '2020-07-01' then '2020 2)Lockdown'
              when acc_quarter < '2021-01-01' then '2020 3)Post-Lockdown'
              else 'Other'
-            end as Covid_Periods
+            end as Covid_Periods,
+
+        case when termincep <= '2017-06-30' then 'XoL Period 1'
+              when termincep <= '2018-06-30' then 'XoL Period 2'
+              when termincep <= '2018-12-31' then 'XoL Period 3'
+              when termincep <= '2019-12-31' then 'XoL Period 4'
+              when termincep <= '2020-12-31' then 'XoL Period 5'
+              else 'Unknown'
+           end as xol_period
+
+        , case when termincep <= '2017-06-30' then 0.083*eprem
+               when termincep <= '2018-06-30' then 0.129*eprem
+               when termincep <= '2018-12-31' then 0.125*eprem
+               when termincep <= '2019-12-31' then 0.125*eprem
+               when termincep <= '2020-12-31' then 0.153*eprem
+              else 0
+           end as xol_prem
+         ,case when total_incurred > 1000000 then total_incurred-1000000
+              else 0 end as XoL_Incurred_xs1m
 
     FROM
       (
@@ -275,6 +293,11 @@ view: expoclm {
       week
     ]
     sql: ${TABLE}.quote_dttm ;;
+  }
+
+  dimension: XoL_Period {
+    type:  string
+    sql:  ${TABLE}.xol_period ;;
   }
 
   dimension: Accident_Quarter {
@@ -1317,7 +1340,30 @@ dimension: holdout_aug18 {
   measure:  predicted_loss_ratio{
     type: number
     sql: avg(predicted_bc)/avg(net_premium) ;;
+  }
 
+
+  measure:  XoL_Earned_Premium{
+    type: number
+    sql: sum(xol_prem) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: XoL_Incurred_XS1m {
+    type:  number
+    sql:  sum (XoL_Incurred_XS1m) ;;
+    value_format_name: gbp_0
+  }
+
+  measure: XoL_Loss_Ratio {
+    type:  number
+    sql: sum(xol_incurred_xs1m)/sum(xol_prem) ;;
+    value_format_name: percent_0
+  }
+
+  measure: XoL_Claims_Count {
+    type: number
+    sql: sum(case when XoL_incurred_XS1m > 0 then 1 else 0 end) ;;
 
   }
 
