@@ -1364,6 +1364,19 @@ dimension: holdout_aug18 {
   measure: XoL_Claims_Count {
     type: number
     sql: sum(case when XoL_incurred_XS1m > 0 then 1 else 0 end) ;;
+  }
+
+  measure: XoL_XS1m_Freq {
+    type: number
+    sql:sum(case when XoL_incurred_XS1m > 0 then 1.000000000 else 0.000000000 end)/sum(evy*1.000000000);;
+
+
+  }
+
+  measure: XoL_Rate_Earned {
+    type: number
+    sql: ${XoL_Earned_Premium}/${earned_premium} ;;
+    value_format_name: percent_2
 
   }
 
