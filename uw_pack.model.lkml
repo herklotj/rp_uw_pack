@@ -11,3 +11,4 @@ datagroup: uw_pack_default_datagroup {
 persist_with: uw_pack_default_datagroup
 
 explore: expoclm {}
+explore: smart_breakdown_journeys {}
