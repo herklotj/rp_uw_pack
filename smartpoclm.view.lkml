@@ -84,4 +84,10 @@ left join
       value_format_name: decimal_1
     }
 
+   measure: distance_per_day {
+     type: number
+     sql: sum(gps_distance)/(1000*${device_days}) ;;
+     value_format_name: decimal_0
+   }
+
   }
