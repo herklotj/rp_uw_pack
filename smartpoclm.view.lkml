@@ -2,6 +2,7 @@ view: smartpoclm {derived_table: {
     sql:
 select
   exposure.*
+  ,case when journeys.week_end > to_date(sysdate) then 'Partial Week' else 'Full Week' end as Partial_Week_Flag
   ,ra.postal_area
   ,ra.postal_region
   ,(exposure.week_end - exposure.week)*device_Live as device_days
@@ -17,18 +18,20 @@ left join
     (select
         uid
         ,cal.start_date as week
+        ,cal.end_date as week_end
         ,count(*) as journeys
         ,sum(gps_distance) as gps_distance
         ,sum(can_distance) as can_distance
         ,sum(harsh_acc_count) as harsh_acc_count
         ,sum(harsh_dec_count) as harsh_dec_count
         ,sum(overspeed_count) as overspeed_count
+
      from
         si_journey_summary j
      left join
            calendar_week cal
           on cal.start_date <= j.start_time and cal.end_date >= j.start_time
-     group by uid, cal.start_date
+     group by uid, cal.start_date,cal.end_date
       )journeys
     on exposure.uid=journeys.uid and journeys.week = exposure.week
   left join
@@ -59,6 +62,11 @@ left join
       type: string
       sql: postal_region ;;
 
+    }
+
+    dimension: Partial_Week {
+      type: string
+      sql: Partial_Week_Flag ;;
     }
 
     measure: devices_live {
