@@ -44,7 +44,10 @@ view: smart_breakdown_journeys {derived_table: {
 
     dimension: Time_Of_Day {
       type: number
-      sql: hour(${TABLE}.start_time) ;;
+      sql:case when month(start_time) <=3 then hour(${TABLE}.start_time)
+                 when month(start_time) <=10 then hour(${TABLE}.start_time)+1
+                 else hour(${TABLE}.start_time) end
+             ;;
     }
 
     dimension: Covid_Period {
