@@ -9,6 +9,7 @@ view: smart_breakdown_journeys {derived_table: {
       ,dayofweek(start_time) as week_day
       ,hour(start_time) as start_hour
       ,1 as journey
+      ,gps_distance
       ,case when start_time < '2019-01-01' then 'Pre 2019'
              when start_time < '2020-01-01' then '2019'
              when start_time < '2020-04-01' then '2020 1)Pre-lockdown'
@@ -53,6 +54,11 @@ view: smart_breakdown_journeys {derived_table: {
 
   measure: Journeys {
     type: count
+  }
+
+  measure: distance {
+    type: number
+    sql: sum(gps_distance) ;;
   }
 
 }
