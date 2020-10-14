@@ -29,7 +29,7 @@ left join
      from
         si_journey_summary j
      left join
-           calendar_week cal
+           aauser.calendar_week cal
           on cal.start_date <= j.start_time and cal.end_date >= j.start_time
      group by uid, cal.start_date,cal.end_date
       )journeys
