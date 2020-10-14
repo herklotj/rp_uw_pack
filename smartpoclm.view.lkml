@@ -5,7 +5,7 @@ select
   ,case when journeys.week_end > to_date(sysdate) then 'Partial Week' else 'Full Week' end as Partial_Week_Flag
   ,ra.postal_area
   ,ra.postal_region
-  ,(exposure.week_end - exposure.week)*device_Live as device_days
+  ,(exposure.week_end - exposure.week+1)*device_Live as device_days
   ,journeys.journeys
   ,journeys.gps_distance
   ,journeys.can_distance
