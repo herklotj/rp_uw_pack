@@ -856,6 +856,11 @@ dimension: holdout_aug18 {
     sql: previous_keepers ;;
   }
 
+  dimension: car_age {
+    type: number
+    sql: car_age ;;
+  }
+
 # Measures
 
   measure: exposure {
