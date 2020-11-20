@@ -204,7 +204,8 @@ view: expoclm {
             when occupation_type_d1 != 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d4 IN ('S', 'W') AND occupation_type_d4 = 'U03')
             AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d2 != 'U03' OR occupation_type_d2 IS NULL) then 1      else 0 end as business_rule_2,
             case when f_claims_5yrs = 1 AND policy_convictions_5yrs = 1 then 1 else 0 end as claim_conv_2,
-            case when timestampdiff (YEAR,dob_d1,rco1_coverstartdate1) BETWEEN 76 AND 79  OR timestampdiff (YEAR,dob_d2,rco1_coverstartdate1) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d3,rco1_coverstartdate1) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d4,rco1_coverstartdate1) BETWEEN 76 AND 79 then 1 else 0 end as age_79_flag
+            case when timestampdiff (YEAR,dob_d1,rco1_coverstartdate1) BETWEEN 76 AND 79  OR timestampdiff (YEAR,dob_d2,rco1_coverstartdate1) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d3,rco1_coverstartdate1) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d4,rco1_coverstartdate1) BETWEEN 76 AND 79 then 1 else 0 end as age_79_flag,
+            case when a.e0ved1_kcd1_numberpreviouskeepers1 BETWEEN 0 AND 5 then '<= 5' WHEN a.e0ved1_kcd1_numberpreviouskeepers1 = 6 then '6' WHEN a.e0ved1_kcd1_numberpreviouskeepers1 = 7 then '7' WHEN a.e0ved1_kcd1_numberpreviouskeepers1 = 8 then '8' WHEN a.e0ved1_kcd1_numberpreviouskeepers1 = 9 then '9' WHEN a.e0ved1_kcd1_numberpreviouskeepers1 >= 10 then '10+' else 'Unknown' end as previous_keepers
             /*case when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d2 IN ('S', 'W') AND occupation_type_d2 != 'U03')
             AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
             when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d3 IN ('S', 'W') AND occupation_type_d3 != 'U03')
@@ -847,6 +848,11 @@ dimension: holdout_aug18 {
   dimension: originator_name  {
     type: string
     sql: originator_name ;;
+  }
+
+  dimension: number_previous_keepers {
+    type: string
+    sql: previous_keepers ;;
   }
 
 # Measures
