@@ -48,7 +48,8 @@ view: expoclm {
              when acc_quarter < '2020-01-01' then '2019'
              when acc_quarter < '2020-04-01' then '2020 1)Pre-lockdown'
              when acc_quarter < '2020-07-01' then '2020 2)Lockdown'
-             when acc_quarter < '2021-01-01' then '2020 3)Post-Lockdown'
+             when acc_quarter < '2020-09-01' then '2020 3)Post-Lockdown'
+             when acc_quarter < '2021-01-01' then '2020 4)Second-Wave'
              else 'Other'
             end as Covid_Periods,
 
@@ -1374,7 +1375,7 @@ dimension: holdout_aug18 {
 
   measure: XoL_XS1m_Freq {
     type: number
-    sql: sum(case when pi_incurred>=1000000 then 1 else 0 end)/nullif(${exposure},0) ;;
+    sql: sum(case when XoL_incurred_XS1m > 0 then 1000.0000000 else 0.0000000 end)/1000.00000/nullif(${exposure},0) ;;
     value_format: "0.0000%"
 
   }
