@@ -234,6 +234,9 @@ view: expoclm {
          left join
               qs_cover cov
               on e.quote_id = cov.quote_id AND e.quote_id != ' ' AND to_date(cov.quote_dttm) != '2999-12-31' AND e.quote_id IS NOT NULL
+         left join
+              qs_experian_vehicle veh
+              on e.quote_id = veh.quote_id AND e.quote_id != ' ' AND e.quote_id IS NOT NULL
       )f
      ;;
   }
@@ -1296,7 +1299,7 @@ dimension: holdout_aug18 {
 
   measure:  pi_xs_100k_freq{
     type: number
-    sql: sum(case when pi_incurred>=100000 then 1.00000 else 0.00000 end)/nullif(${exposure},0) ;;
+    sql: sum(case when pi_incurred>=100000 then 1.00000 else 0.00000 end)/(nullif(${exposure},0.000))*1.000 ;;
     value_format: "0.0000%"
 
   }
