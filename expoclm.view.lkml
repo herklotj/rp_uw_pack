@@ -1384,4 +1384,9 @@ dimension: holdout_aug18 {
 
   }
 
+  measure: Record_count {
+    type: count
+
+  }
+
   }
