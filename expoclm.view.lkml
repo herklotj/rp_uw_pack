@@ -204,7 +204,9 @@ view: expoclm {
             when occupation_type_d1 != 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d4 IN ('S', 'W') AND occupation_type_d4 = 'U03')
             AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d2 != 'U03' OR occupation_type_d2 IS NULL) then 1      else 0 end as business_rule_2,
             case when f_claims_5yrs = 1 AND policy_convictions_5yrs = 1 then 1 else 0 end as claim_conv_2,
-            case when timestampdiff (YEAR,dob_d1,rco1_coverstartdate1) BETWEEN 76 AND 79  OR timestampdiff (YEAR,dob_d2,rco1_coverstartdate1) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d3,rco1_coverstartdate1) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d4,rco1_coverstartdate1) BETWEEN 76 AND 79 then 1 else 0 end as age_79_flag
+            case when timestampdiff (YEAR,dob_d1,rco1_coverstartdate1) BETWEEN 76 AND 79  OR timestampdiff (YEAR,dob_d2,rco1_coverstartdate1) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d3,rco1_coverstartdate1) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d4,rco1_coverstartdate1) BETWEEN 76 AND 79 then 1 else 0 end as age_79_flag,
+            case when e.e0ved1_kcd1_numberpreviouskeepers1 BETWEEN 0 AND 5 then '<= 5' WHEN e.e0ved1_kcd1_numberpreviouskeepers1 = 6 then '06' WHEN e.e0ved1_kcd1_numberpreviouskeepers1 = 7 then '07' WHEN e.e0ved1_kcd1_numberpreviouskeepers1 = 8 then '08' WHEN e.e0ved1_kcd1_numberpreviouskeepers1 = 9 then '09' WHEN e.e0ved1_kcd1_numberpreviouskeepers1 >= 10 then '10+' else 'Unknown' end as previous_keepers,
+            timestampdiff (YEAR, veh.e0ved1_rd1_datefirstregistered1, e.exposure_start) as car_age
             /*case when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d2 IN ('S', 'W') AND occupation_type_d2 != 'U03')
             AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
             when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d3 IN ('S', 'W') AND occupation_type_d3 != 'U03')
@@ -235,6 +237,9 @@ view: expoclm {
          left join
               qs_cover cov
               on e.quote_id = cov.quote_id AND e.quote_id != ' ' AND to_date(cov.quote_dttm) != '2999-12-31' AND e.quote_id IS NOT NULL
+         left join
+              qs_experian_vehicle veh
+              on e.quote_id = veh.quote_id AND e.quote_id != ' ' AND e.quote_id IS NOT NULL
       )f
      ;;
   }
@@ -846,6 +851,16 @@ dimension: holdout_aug18 {
     sql: originator_name ;;
   }
 
+  dimension: number_previous_keepers {
+    type: string
+    sql: previous_keepers ;;
+  }
+
+  dimension: car_age {
+    type: number
+    sql: car_age ;;
+  }
+
 # Measures
 
   measure: exposure {
@@ -1297,7 +1312,7 @@ dimension: holdout_aug18 {
 
   measure:  pi_xs_100k_freq{
     type: number
-    sql: sum(case when pi_incurred>=100000 then 1.00000 else 0.00000 end)/nullif(${exposure},0) ;;
+    sql: sum(case when pi_incurred>=100000 then 1.00000 else 0.00000 end)/(nullif(${exposure},0.000))*1.000 ;;
     value_format: "0.0000%"
 
   }
