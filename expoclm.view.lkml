@@ -49,7 +49,8 @@ view: expoclm {
              when acc_quarter < '2020-04-01' then '2020 1)Pre-lockdown'
              when acc_quarter < '2020-07-01' then '2020 2)Lockdown'
              when acc_quarter < '2020-09-01' then '2020 3)Post-Lockdown'
-             when acc_quarter < '2021-01-01' then '2020 4)Second-Wave'
+             when acc_quarter < '2020-01-01' then '2020 4)Second-Wave'
+            when acc_quarter  < '2022-01-01' then '2021 5)Lockdown'
              else 'Other'
             end as Covid_Periods,
 
