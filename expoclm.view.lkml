@@ -931,14 +931,14 @@ dimension: holdout_aug18 {
   dimension: footprint_br03 {
     type: string
     sql: CASE WHEN ${TABLE}.Postcode_Sector_Decline = 'DECLINE' AND ${Membership_Type} = 'Standard Member' then 'irrelevant'
-         WHEN ${TABLE}.Postcode_Sector_Decline = 'DECLINE' AND ${TABLE}.ncd_years > 2 and restriction_derived_br = 1 then 'with_iod_is_restriction'
-         WHEN ${TABLE}.Postcode_Sector_Decline = 'DECLINE' AND ${TABLE}.ncd_years > 2 then 'without_iod_is_restriction - FTP'
+         WHEN ${TABLE}.Postcode_Sector_Decline = 'DECLINE' AND ${TABLE}.ncd_years > 2 and restriction_derived_br = 1 then 'IoD/IS_Only'
+         WHEN ${TABLE}.Postcode_Sector_Decline = 'DECLINE' AND ${TABLE}.ncd_years > 2 then 'Other_Driving_Restriction - FTP'
          else 'irrelevant' end ;;
   }
 
   dimension: ncd_greater_than_licence_years_flag {
     type: string
-    sql: CASE WHEN ${TABLE}.ncd_years - (timestampdiff (YEAR,${TABLE}.rpr1_mld1_licencequalifyingdate1 - 1,rco1_coverstartdate1)) = 1 THEN '1 - FTP' ELSE '0' END ;;
+    sql: CASE WHEN ${TABLE}.ncd_years - (timestampdiff (YEAR,${TABLE}.rpr1_mld1_licencequalifyingdate1 - 1,rco1_coverstartdate1)) = 1 THEN 'Yes - FTP' ELSE 'No' END ;;
   }
 
   dimension: min_driver_residency_years {
@@ -958,7 +958,7 @@ dimension: holdout_aug18 {
 
   dimension: tp_credit_score_restriction {
     type: string
-    sql: CASE WHEN ${TABLE}.TP_Go_Live_Credit_Score > 0.0329 then 'no_tp_restriction - FTP' else 'with_tp_restriction' end ;;
+    sql: CASE WHEN ${TABLE}.TP_Go_Live_Credit_Score > 0.0329 then 'New Accept' else 'Old Accept' end ;;
   }
 
   dimension: ncd_years_unbanded {
@@ -968,7 +968,7 @@ dimension: holdout_aug18 {
 
   dimension: low_ncd_rule {
     type: string
-    sql: CASE WHEN (restriction_derived_br!= 0 AND pi_rated_area < 50) AND f_claims_5yrs = 0 then '1' else '0 - FTP' end ;;
+    sql: CASE WHEN (restriction_derived_br!= 0 AND pi_rated_area < 50) AND f_claims_5yrs = 0 then 'Old Rule' else 'Relaxed Rule - FTP' end ;;
   }
 
 # Measures
