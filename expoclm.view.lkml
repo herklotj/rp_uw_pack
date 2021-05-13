@@ -3,6 +3,7 @@ view: expoclm {
     sql:
     SELECT
         *,
+        riskpremium_an/predicted_market_price AS market_ratio,
         (case when transaction_type in ('CrossQuote', 'Renewal')
                 then
                   predicted_ad_freq*predicted_ad_sev+ predicted_pi_freq*predicted_pi_sev+ predicted_tp_freq*predicted_tp_sev+ predicted_ot_freq*predicted_ot_sev+ predicted_ws_freq*predicted_ws_sev
@@ -102,6 +103,7 @@ view: expoclm {
             e.scheme_number,
             e.scheme,
             e.evy,
+            mi.quote_dttm,
             e.exposure_asat,
             e.exposure_start,
             e.exposure_end,
@@ -189,6 +191,7 @@ view: expoclm {
             e.annual_cover_start_dttm_,
             e.TP_Go_Live_Credit_Score,
             cov.no_additional_drivers,
+            cov.riskpremium_an,
             ra.ad_ra_update,
             ra.tp_ra_update,
             ra.pi_ra_update,
@@ -263,7 +266,8 @@ view: expoclm {
             CASE WHEN rpr1_rd1_residencydate1 IS NULL THEN dob_d1 ELSE rpr1_rd1_residencydate1 END AS PH_Residency_Date,
             CASE WHEN ad1_dd1_rd1_residencydate1 IS NULL THEN dob_d2 ELSE ad1_dd1_rd1_residencydate1 END AS D2_Residency_Date,
             CASE WHEN ad2_dd1_rd1_residencydate1 IS NULL THEN dob_d3 ELSE ad2_dd1_rd1_residencydate1 END AS D3_Residency_Date,
-            CASE WHEN ad3_dd1_rd1_residencydate1 IS NULL THEN dob_d4 ELSE ad3_dd1_rd1_residencydate1 END AS D4_Residency_Date
+            CASE WHEN ad3_dd1_rd1_residencydate1 IS NULL THEN dob_d4 ELSE ad3_dd1_rd1_residencydate1 END AS D4_Residency_Date,
+            mi.rct_mi_14 AS predicted_market_price
 
             /*case when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d2 IN ('S', 'W') AND occupation_type_d2 != 'U03')
             AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
@@ -298,6 +302,9 @@ view: expoclm {
          left join
               qs_experian_vehicle veh
               on e.quote_id = veh.quote_id AND e.quote_id != ' ' AND e.quote_id IS NOT NULL
+         left join
+              qs_mi_outputs mi
+              ON e.quote_id = mi.quote_id AND e.quote_id != ' ' AND to_date(mi.quote_dttm) != '2999-12-31' AND e.quote_id IS NOT NULL AND mi.rct_mi_14 != ' '
       )f
      ;;
   }
@@ -460,6 +467,15 @@ view: expoclm {
     sql: ${TABLE}.inception_strategy ;;
   }
 
+  dimension: new_market_model {
+    type: string
+    sql:CASE
+         WHEN inception_strategy = '26: Aug18' AND to_date (quote_dttm) > '2021-04-20' AND to_date (quote_dttm) != '2999-12-31' AND to_date (quote_dttm) IS NOT NULL THEN 'NEW (26)'
+         WHEN inception_strategy = '32: NM Jul18 - New Margin' AND to_date (quote_dttm) >= '2021-04-28' AND to_date (quote_dttm) != '2999-12-31' AND to_date (quote_dttm) IS NOT NULL THEN 'NEW (32)'
+         ELSE 'OLD'
+       END;;
+}
+
   dimension: consumer_name {
     label: "Channel"
     type: string
@@ -472,6 +488,14 @@ view: expoclm {
     style: integer
     sql: ${TABLE}.value ;;
     value_format_name: gbp_0
+  }
+
+  dimension: market_ratio_bands {
+    type: tier
+    tiers: [0.2, 0.22, 0.24, 0.26,0.28,0.30,0.32,0.34,0.36,0.38,0.40,0.42,0.44,0.46,0.48,0.50,0.52,0.540,0.56,0.58,0.60,0.62,0.64,0.66,0.68,0.70,0.72,0.74,0.76,0.78,0.80,0.82,0.84,0.86,0.88,0.90,0.92,0.94,0.96,0.98,1.0,1.02,1.04,1.06,1.08,1.10,1.12,1.14,1.16,1.18,1.2]
+    style: interval
+    sql: ${TABLE}.market_ratio ;;
+    value_format_name: decimal_2
   }
 
   dimension: vehicle_age {
