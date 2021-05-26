@@ -472,6 +472,8 @@ view: expoclm {
     sql:CASE
          WHEN inception_strategy = '26: Aug18' AND to_date (quote_dttm) > '2021-04-20' AND to_date (quote_dttm) != '2999-12-31' AND to_date (quote_dttm) IS NOT NULL THEN 'NEW (26)'
          WHEN inception_strategy = '32: NM Jul18 - New Margin' AND to_date (quote_dttm) >= '2021-04-28' AND to_date (quote_dttm) != '2999-12-31' AND to_date (quote_dttm) IS NOT NULL THEN 'NEW (32)'
+         WHEN to_date(quote_dttm) >= '2021-05-14' AND inception_strategy = '33: M July19' THEN 'NEW (33)'
+         WHEN to_date(quote_dttm) >= '2021-05-21'  AND inception_strategy = '35: NM July 19' THEN 'NEW (35)'
          ELSE 'OLD'
        END;;
 }
