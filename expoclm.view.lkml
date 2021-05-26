@@ -190,6 +190,7 @@ view: expoclm {
             e.achub_live_member1,
             e.annual_cover_start_dttm_,
             e.TP_Go_Live_Credit_Score,
+            e.membership_propensity,
             cov.no_additional_drivers,
             cov.riskpremium_an,
             ra.ad_ra_update,
@@ -995,6 +996,16 @@ dimension: holdout_aug18 {
   dimension: low_ncd_rule {
     type: string
     sql: CASE WHEN (restriction_derived_br!= 0 AND pi_rated_area < 50) AND f_claims_5yrs = 0 then 'Old Rule' else 'Relaxed Rule - FTP' end ;;
+  }
+
+  dimension: membership_propensity {
+    type: string
+    sql: CASE WHEN membership_propensity >= 0.015 AND membership_propensity < 0.02 then '1) 0.015-0.02'
+WHEN membership_propensity >= 0.02 AND membership_propensity < 0.025 then '2) 0.020-0.025'
+WHEN membership_propensity >= 0.025 AND membership_propensity < 0.03 then '3) 0.025-0.030'
+WHEN membership_propensity >= 0.03 AND membership_propensity < 0.035 then '4) 0.030-0.035'
+WHEN membership_propensity >= 0.035 then '5) >= 0.035'
+ELSE 'Other' end ;;
   }
 
 # Measures
