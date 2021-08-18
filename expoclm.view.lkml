@@ -3,6 +3,7 @@ view: expoclm {
     sql:
     SELECT
         *,
+        riskpremium_an/predicted_market_price AS market_ratio,
         (case when transaction_type in ('CrossQuote', 'Renewal')
                 then
                   predicted_ad_freq*predicted_ad_sev+ predicted_pi_freq*predicted_pi_sev+ predicted_tp_freq*predicted_tp_sev+ predicted_ot_freq*predicted_ot_sev+ predicted_ws_freq*predicted_ws_sev
@@ -77,7 +78,27 @@ view: expoclm {
               else 0
            end as xol_prem
          ,case when total_incurred > 1000000 then total_incurred-1000000
-              else 0 end as XoL_Incurred_xs1m
+              else 0 end as XoL_Incurred_xs1m,
+
+          CASE WHEN Membership_Selection = 2 then ACHUB_ass_LIVE_MEMBER1
+          WHEN Membership_Selection = 3 then ACHUB_add1_LIVE_MEMBER1
+          WHEN Membership_Selection = 4 then ACHUB_add1_ass_LIVE_MEMBER1
+          ELSE ACHUB_LIVE_MEMBER1 end as LIVE_MEMBER1,
+
+          CASE WHEN Membership_Selection = 2 then ACHUB_ass_HOME_HISTORY1
+          WHEN Membership_Selection = 3 then ACHUB_add1_HOME_HISTORY1
+          WHEN Membership_Selection = 4 then ACHUB_add1_ass_HOME_HISTORY1
+          ELSE  ACHUB_HOME_HISTORY1 end as HOME_HISTORY1,
+
+          CASE WHEN Membership_Selection = 2 then ACHUB_ass_TENURE_CURRENT1
+          WHEN Membership_Selection = 3 then ACHUB_add1_TENURE_CURRENT1
+          WHEN Membership_Selection = 4 then ACHUB_add1_ass_TENURE_CURRENT1
+          else ACHUB_TENURE_CURRENT1 end as TENURE_CURRENT1,
+
+          CASE WHEN no_additional_drivers + 1 > 0 THEN INT(MONTHS_BETWEEN (annual_cover_start_dttm_,PH_Residency_Date) / 12) ELSE NULL END AS d1_residency_years,
+          CASE WHEN no_additional_drivers + 1 > 1 THEN INT(MONTHS_BETWEEN (annual_cover_start_dttm_,D2_Residency_Date) / 12) ELSE NULL END AS d2_residency_years,
+          CASE WHEN no_additional_drivers + 1 > 2 THEN INT(MONTHS_BETWEEN (annual_cover_start_dttm_,D3_Residency_Date) / 12) ELSE NULL END AS d3_residency_years,
+          CASE WHEN no_additional_drivers + 1 > 3 THEN INT(MONTHS_BETWEEN (annual_cover_start_dttm_,D4_Residency_Date) / 12) ELSE NULL END AS d4_residency_years
 
 
     FROM
@@ -89,6 +110,7 @@ view: expoclm {
             e.scheme_number,
             e.scheme,
             e.evy,
+            mi.quote_dttm,
             e.exposure_asat,
             e.exposure_start,
             e.exposure_end,
@@ -161,6 +183,23 @@ view: expoclm {
             e.rpr1_noofothervehiclesdriven1,
             e.min_age,
             e.leadtime,
+            e.achub_ass_tenure_current1,
+            e.achub_add1_tenure_current1,
+            e.achub_add1_ass_tenure_current1,
+            e.achub_tenure_current1,
+            e.achub_ass_home_history1,
+            e.achub_add1_home_history1,
+            e.achub_add1_ass_home_history1,
+            e.achub_home_history1,
+            e.achub_ass_live_member1,
+            e.achub_add1_live_member1,
+            e.achub_add1_ass_live_member1,
+            e.achub_live_member1,
+            e.annual_cover_start_dttm_,
+            e.TP_Go_Live_Credit_Score,
+            e.membership_propensity,
+            cov.no_additional_drivers,
+            cov.riskpremium_an,
             ra.ad_ra_update,
             ra.tp_ra_update,
             ra.pi_ra_update,
@@ -219,7 +258,30 @@ view: expoclm {
             case when f_claims_5yrs = 1 AND policy_convictions_5yrs = 1 then 1 else 0 end as claim_conv_2,
             case when timestampdiff (YEAR,dob_d1,rco1_coverstartdate1) BETWEEN 76 AND 79  OR timestampdiff (YEAR,dob_d2,rco1_coverstartdate1) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d3,rco1_coverstartdate1) BETWEEN 76 AND 79 OR timestampdiff (YEAR,dob_d4,rco1_coverstartdate1) BETWEEN 76 AND 79 then 1 else 0 end as age_79_flag,
             case when e.e0ved1_kcd1_numberpreviouskeepers1 BETWEEN 0 AND 5 then '<= 5' WHEN e.e0ved1_kcd1_numberpreviouskeepers1 = 6 then '06' WHEN e.e0ved1_kcd1_numberpreviouskeepers1 = 7 then '07' WHEN e.e0ved1_kcd1_numberpreviouskeepers1 = 8 then '08' WHEN e.e0ved1_kcd1_numberpreviouskeepers1 = 9 then '09' WHEN e.e0ved1_kcd1_numberpreviouskeepers1 >= 10 then '10+' else 'Unknown' end as previous_keepers,
-            timestampdiff (YEAR, veh.e0ved1_rd1_datefirstregistered1, e.exposure_start) as car_age
+            timestampdiff (YEAR, veh.e0ved1_rd1_datefirstregistered1, e.exposure_start) as car_age,
+
+            CASE WHEN ACHUB_LIVE_MEMBER1 = 'Y' then 1
+            WHEN ACHUB_ass_live_member1 = 'Y' then 2
+            WHEN ACHUB_TENURE_CURRENT1 > 0 or ACHUB_HOME_HISTORY1 = 'C' or ACHUB_HOME_HISTORY1 =  'X' then 1
+            WHEN cov.no_additional_drivers > 0 and (relationship_d2 = 'S' or relationship_d2 = 'W') AND  ACHUB_add1_live_member1 = 'Y' then 3
+            WHEN ACHUB_add1_ass_live_member1 = 'Y' then 4
+            WHEN ACHUB_add1_tenure_current1 > 0 or ACHUB_add1_home_history1 = 'C' or ACHUB_add1_home_history1 = 'X' then 3
+            ELSE 0 end as Membership_Selection,
+
+            CASE WHEN cov.no_additional_drivers = 0 then 1
+            WHEN cov.no_additional_drivers = 1 AND relationship_d2 = 'S' then 1
+            WHEN cov.no_additional_drivers = 1 AND relationship_d2 = 'W' then 1
+            ELSE 0 end as restriction_derived_br,
+
+            CASE WHEN ( SUBSTRING(REPLACE(UPPER(postcode),' ',''),1,LENGTH(REPLACE(UPPER(postcode),' ','')) - 2) ) IN ('B11','B12','B13','B100','B109','B111','B112','B113','B114','B119','B120','B128','B129','B130','B133','B138','B139','B144','B145','B146','B147','B151','B152','B153','B160','B166','B168','B169','B170','B178','B179','B184','B185','B186','B187','B189','B191','B192','B193','B22','B24','B25','B201','B202','B203','B210','B211','B218','B219','B233','B235','B236','B237','B240','B248','B249','B258','B259','B261','B262','B263','B276','B277','B280','B281','B288','B289','B294','B295','B296','B297','B299','B31','B32','B33','B301','B302','B303','B309','B311','B312','B313','B314','B315','B319','B321','B322','B323','B324','B329','B330','B333','B338','B339','B346','B347','B356','B357','B359','B360','B368','B369','B375','B376','B377','B379','B380','B388','B389','B46','B47','B401','B421','B422','B429','B435','B436','B437','B440','B448','B449','B450','B455','B458','B459','B475','B476','B54','B55','B56','B57','B64','B65','B66','B67','B69','B620','B622','B628','B629','B631','B632','B633','B634','B645','B646','B647','B650','B658','B659','B661','B662','B663','B664','B675','B676','B677','B679','B680','B688','B689','B691','B692','B693','B694','B699','B74','B75','B700','B701','B706','B707','B708','B709','B711','B712','B713','B714','B721','B735','B736','B739','B742','B743','B744','B755','B756','B757','B81','B82','B83','B94','B95','B99','B901','B902','B903','B904','B908','B909','B911','B912','B913','B919','B927','B928','B929','B991','BB11','BB13','BB15','BB16','BB17','BB18','BB19','BB101','BB102','BB111','BB112','BB114','BB119','BB120','BB126','BB21','BB22','BB23','BB24','BB29','BB50','BB51','BB54','BB56','BB80','BB89','BB90','BB94','BB95','BB97','BB98','BB99','BD11','BD12','BD13','BD14','BD15','BD19','BD100','BD108','BD109','BD120','BD146','BD157','BD164','BD175','BD176','BD177','BD181','BD182','BD183','BD184','BD189','BD193','BD194','BD21','BD22','BD23','BD24','BD30','BD37','BD38','BD39','BD40','BD46','BD47','BD48','BD49','BD50','BD55','BD57','BD58','BD59','BD61','BD62','BD63','BD71','BD72','BD73','BD74','BD80','BD87','BD88','BD89','BD94','BD95','BD96','BD971','BD981','BD985','BD988','BD992','BD994','BD999','BL11','BL12','BL13','BL14','BL15','BL16','BL17','BL18','BL19','BL111','BL21','BL22','BL23','BL24','BL25','BL26','BL31','BL32','BL33','BL34','BL35','BL36','BL40','BL44','BL47','BL48','BL49','BL781','BL787','BL81','BL82','BL90','BL95','BL96','BL97','BL98','BL99','CH11','CH12','CH13','CH14','CH15','CH21','CH22','CH23','CH35','CH47','CH48','CH410','CH411','CH412','CH413','CH414','CH415','CH416','CH417','CH418','CH419','CH420','CH421','CH422','CH423','CH424','CH425','CH426','CH427','CH428','CH429','CH430','CH431','CH432','CH433','CH434','CH435','CH436','CH437','CH438','CH439','CH440','CH441','CH442','CH443','CH444','CH445','CH446','CH447','CH448','CH449','CH450','CH451','CH452','CH453','CH454','CH455','CH456','CH457','CH458','CH459','CH650','CH651','CH652','CH653','CH654','CH655','CH656','CH657','CH658','CH659','CH661','CH662','CH663','CH664','CH883','CH991','CH999','FY01','FY11','FY12','FY13','FY14','FY15','FY16','FY19','FY20','FY29','FY37','FY38','FY39','FY41','FY42','FY43','FY44','FY45','FY49','HX11','HX12','HX13','HX14','HX15','HX19','HX30','L10','L11','L12','L13','L14','L15','L16','L17','L18','L19','L100','L101','L102','L103','L104','L105','L106','L107','L108','L109','L110','L111','L112','L113','L114','L115','L116','L117','L118','L119','L120','L121','L122','L123','L124','L125','L126','L127','L128','L129','L130','L131','L132','L133','L134','L135','L136','L137','L138','L139','L140','L141','L142','L143','L144','L145','L146','L147','L148','L149','L150','L151','L152','L153','L154','L155','L156','L157','L158','L159','L160','L161','L162','L163','L164','L165','L166','L167','L168','L169','L170','L171','L172','L173','L174','L175','L176','L177','L178','L179','L180','L181','L182','L183','L184','L185','L186','L187','L188','L189','L190','L191','L192','L193','L194','L195','L196','L197','L198','L199','L20','L21','L22','L23','L24','L25','L26','L27','L28','L29','L200','L201','L202','L203','L204','L205','L206','L207','L208','L209','L210','L211','L212','L213','L214','L215','L216','L217','L218','L219','L220','L221','L222','L223','L224','L225','L226','L227','L228','L229','L230','L231','L232','L233','L235','L236','L237','L238','L239','L240','L241','L242','L243','L244','L245','L246','L247','L248','L249','L250','L251','L252','L253','L254','L255','L256','L257','L258','L259','L260','L261','L262','L263','L264','L265','L266','L267','L268','L269','L270','L271','L272','L273','L274','L275','L276','L277','L278','L280','L281','L283','L284','L285','L286','L287','L288','L30','L31','L32','L33','L34','L35','L36','L37','L38','L39','L300','L301','L302','L303','L304','L305','L306','L307','L308','L309','L310','L312','L313','L315','L316','L317','L318','L319','L320','L321','L322','L323','L324','L325','L326','L327','L328','L329','L360','L361','L362','L363','L364','L365','L366','L367','L368','L369','L371','L372','L373','L374','L376','L377','L378','L391','L392','L393','L394','L395','L40','L41','L42','L43','L44','L45','L46','L47','L48','L49','L50','L51','L52','L53','L54','L55','L56','L57','L58','L59','L60','L61','L62','L63','L64','L65','L66','L67','L68','L69','L671','L680','L691','L692','L693','L694','L695','L696','L697','L698','L699','L70','L71','L72','L73','L74','L75','L76','L77','L78','L79','L701','L702','L708','L709','L712','L720','L721','L728','L736','L744','L751','L752','L80','L81','L82','L83','L84','L85','L86','L87','L88','L89','L804','L90','L91','L92','L93','L94','L95','L96','L97','L98','L99','M11','M12','M13','M14','M15','M16','M17','M110','M111','M112','M113','M114','M120','M124','M125','M126','M130','M131','M139','M140','M144','M145','M146','M147','M154','M155','M156','M160','M166','M167','M168','M169','M171','M178','M187','M188','M190','M191','M192','M193','M21','M22','M23','M24','M25','M26','M27','M201','M202','M203','M204','M205','M206','M210','M213','M217','M218','M219','M220','M221','M222','M223','M224','M225','M228','M229','M230','M231','M232','M239','M240','M241','M242','M244','M245','M246','M250','M251','M252','M253','M259','M270','M274','M275','M276','M278','M279','M31','M32','M33','M34','M35','M36','M37','M300','M303','M307','M308','M309','M314','M320','M322','M328','M329','M340','M342','M343','M345','M346','M347','M350','M355','M359','M41','M42','M43','M44','M45','M46','M47','M400','M401','M402','M403','M404','M405','M407','M408','M409','M430','M436','M437','M450','M456','M457','M458','M50','M53','M54','M55','M501','M502','M503','M509','M65','M66','M67','M68','M600','M601','M602','M603','M604','M606','M607','M608','M609','M610','M71','M72','M73','M74','M80','M81','M82','M84','M85','M88','M89','M90','M94','M95','M96','M97','M98','M99','M901','M902','M903','M904','M905','M991','M992','OL11','OL12','OL13','OL14','OL19','OL111','OL112','OL113','OL114','OL115','OL120','OL126','OL127','OL161','OL162','OL163','OL164','OL165','OL169','OL25','OL26','OL27','OL28','OL41','OL42','OL60','OL66','OL67','OL68','OL69','OL70','OL79','OL81','OL82','OL83','OL84','OL90','OL96','OL97','OL98','OL99','OL951','PR02','PR10','PR11','PR12','PR13','PR14','PR15','PR16','PR17','PR18','PR19','PR20','PR21','PR22','PR23','PR26','PR27','PR28','PR29','PR60','PR66','PR71','PR72','PR73','PR81','PR82','PR83','PR84','PR86','PR89','PR90','PR97','PR99','S701','S702','SK11','SK12','SK13','SK14','SK19','SK101','SK102','SK103','SK116','SK117','SK118','SK25','SK26','SK27','SK29','SK30','SK33','SK38','SK39','SK41','SK42','SK43','SK44','SK45','SK49','SK56','SK57','SK58','SK59','WA11','WA12','WA13','WA14','WA19','WA101','WA102','WA103','WA104','WA105','WA106','WA109','WA20','WA27','WA29','WA41','WA42','WA50','WA51','WA52','WA53','WA57','WA58','WA59','WA551','WA71','WA72','WA74','WA75','WA76','WA79','WA84','WA86','WA87','WA89','WA881','WA91','WA92','WA93','WF101','WF103','WF104','WF105','WF118','WF61','WF81','WF82','WF84','WN11','WN12','WN13','WN19','WN22','WN34','WN35','WN36','WN50','WN58','WN59','WN67','WN71','WN72','WN73','WN74','WN75','WN79','WN86','WN88','WN89') THEN 'DECLINE'
+            ELSE 'ACCEPT' END AS Postcode_Sector_Decline,
+
+            CASE WHEN rpr1_rd1_residencydate1 IS NULL THEN dob_d1 ELSE rpr1_rd1_residencydate1 END AS PH_Residency_Date,
+            CASE WHEN ad1_dd1_rd1_residencydate1 IS NULL THEN dob_d2 ELSE ad1_dd1_rd1_residencydate1 END AS D2_Residency_Date,
+            CASE WHEN ad2_dd1_rd1_residencydate1 IS NULL THEN dob_d3 ELSE ad2_dd1_rd1_residencydate1 END AS D3_Residency_Date,
+            CASE WHEN ad3_dd1_rd1_residencydate1 IS NULL THEN dob_d4 ELSE ad3_dd1_rd1_residencydate1 END AS D4_Residency_Date,
+            mi.rct_mi_14 AS predicted_market_price
+
             /*case when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d2 IN ('S', 'W') AND occupation_type_d2 != 'U03')
             AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
             when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d3 IN ('S', 'W') AND occupation_type_d3 != 'U03')
@@ -262,6 +324,9 @@ view: expoclm {
          left join
               occupation_category_lookup occ_cat
               on occ_cat.Occ_ABI_Code = e.occupation_type_d1
+          left join
+              qs_mi_outputs mi
+              ON e.quote_id = mi.quote_id AND e.quote_id != ' ' AND to_date(mi.quote_dttm) != '2999-12-31' AND e.quote_id IS NOT NULL AND mi.rct_mi_14 != ' '
 
       )f
      ;;
@@ -429,6 +494,17 @@ view: expoclm {
     sql: ${TABLE}.inception_strategy ;;
   }
 
+  dimension: new_market_model {
+    type: string
+    sql:CASE
+         WHEN inception_strategy = '26: Aug18' AND to_date (quote_dttm) > '2021-04-20' AND to_date (quote_dttm) != '2999-12-31' AND to_date (quote_dttm) IS NOT NULL THEN 'NEW (26)'
+         WHEN inception_strategy = '32: NM Jul18 - New Margin' AND to_date (quote_dttm) >= '2021-04-28' AND to_date (quote_dttm) != '2999-12-31' AND to_date (quote_dttm) IS NOT NULL THEN 'NEW (32)'
+         WHEN to_date(quote_dttm) >= '2021-05-14' AND inception_strategy = '33: M July19' THEN 'NEW (33)'
+         WHEN to_date(quote_dttm) >= '2021-05-21'  AND inception_strategy = '35: NM July 19' THEN 'NEW (35)'
+         ELSE 'OLD'
+       END;;
+}
+
   dimension: consumer_name {
     label: "Channel"
     type: string
@@ -441,6 +517,14 @@ view: expoclm {
     style: integer
     sql: ${TABLE}.value ;;
     value_format_name: gbp_0
+  }
+
+  dimension: market_ratio_bands {
+    type: tier
+    tiers: [0.2, 0.22, 0.24, 0.26,0.28,0.30,0.32,0.34,0.36,0.38,0.40,0.42,0.44,0.46,0.48,0.50,0.52,0.540,0.56,0.58,0.60,0.62,0.64,0.66,0.68,0.70,0.72,0.74,0.76,0.78,0.80,0.82,0.84,0.86,0.88,0.90,0.92,0.94,0.96,0.98,1.0,1.02,1.04,1.06,1.08,1.10,1.12,1.14,1.16,1.18,1.2]
+    style: interval
+    sql: ${TABLE}.market_ratio ;;
+    value_format_name: decimal_2
   }
 
   dimension: vehicle_age {
@@ -861,12 +945,12 @@ dimension: aug18vresv3_ads {
 dimension: scores_attached {
     type: string
     sql: risk_scores ;;
-}
+  }
 
 dimension: holdout_aug18 {
     type: string
     sql: holdout_aug18 ;;
-}
+  }
 
   dimension: holdout_jul19 {
     type: string
@@ -887,6 +971,7 @@ dimension: holdout_aug18 {
     type: number
     sql: car_age ;;
   }
+
 
   dimension: occupation_d1 {
     type: string
@@ -911,6 +996,69 @@ dimension: holdout_aug18 {
   dimension: Occupation_Type_Category_d1 {
     type: string
     sql: Occupation_Type_Category_d1 ;;
+  }
+
+
+  dimension: Membership_Type {
+    type: string
+    sql: CASE WHEN ${TABLE}.LIVE_MEMBER1 = 'N' and ${TABLE}.HOME_HISTORY1!= 'C' and ${TABLE}.HOME_HISTORY1!=  'X' and ${TABLE}.TENURE_CURRENT1 > 0 then 'Ex-Member'
+         WHEN ${TABLE}.LIVE_MEMBER1 = 'N' and (${TABLE}.HOME_HISTORY1 = 'C' or ${TABLE}.HOME_HISTORY1 = 'X') then 'Non Member Home'
+         WHEN ${TABLE}.LIVE_MEMBER1 = 'Y' then 'Standard Member'
+         WHEN ${TABLE}.LIVE_MEMBER1 = 'N' then 'Other Non Member'
+         ELSE 'Unknown' end;;
+  }
+
+  dimension: footprint_br03 {
+    type: string
+    sql: CASE WHEN ${TABLE}.Postcode_Sector_Decline = 'DECLINE' AND ${Membership_Type} = 'Standard Member' then 'irrelevant'
+         WHEN ${TABLE}.Postcode_Sector_Decline = 'DECLINE' AND ${TABLE}.ncd_years > 2 and restriction_derived_br = 1 then 'IoD/IS_Only'
+         WHEN ${TABLE}.Postcode_Sector_Decline = 'DECLINE' AND ${TABLE}.ncd_years > 2 then 'Other_Driving_Restriction - FTP'
+         else 'irrelevant' end ;;
+  }
+
+  dimension: ncd_greater_than_licence_years_flag {
+    type: string
+    sql: CASE WHEN ${TABLE}.ncd_years - (timestampdiff (YEAR,${TABLE}.rpr1_mld1_licencequalifyingdate1 - 1,rco1_coverstartdate1)) = 1 THEN 'Yes - FTP' ELSE 'No' END ;;
+  }
+
+  dimension: min_driver_residency_years {
+    type: string
+    sql: CASE WHEN LEAST(${TABLE}.d1_residency_years,${TABLE}.d2_residency_years,${TABLE}.d3_residency_years,${TABLE}.d4_residency_years) >= 10 AND LEAST(${TABLE}.d1_residency_years,${TABLE}.d2_residency_years,${TABLE}.d3_residency_years,${TABLE}.d4_residency_years) < 15 THEN '2) 10-14 - FTP'
+         WHEN LEAST(${TABLE}.d1_residency_years,${TABLE}.d2_residency_years,${TABLE}.d3_residency_years,${TABLE}.d4_residency_years) >= 15 THEN '3) 15+'
+         ELSE '1) 9 or less'END ;;
+  }
+
+  dimension: car_value {
+    type: string
+    sql: CASE WHEN ${TABLE}.value < 500 THEN '1) £0 - £499 - FTP'
+         WHEN ${TABLE}.value BETWEEN 500 AND 999 THEN '2) £500 - £999'
+         WHEN ${TABLE}.value BETWEEN 1000 AND 1999 THEN '3) £1000 - £1999'
+         ELSE '4) £2000 +' END ;;
+  }
+
+  dimension: tp_credit_score_restriction {
+    type: string
+    sql: CASE WHEN ${TABLE}.TP_Go_Live_Credit_Score > 0.0329 then 'New Accept' else 'Old Accept' end ;;
+  }
+
+  dimension: ncd_years_unbanded {
+    type: number
+    sql: ${TABLE}.ncd_years ;;
+  }
+
+  dimension: low_ncd_rule {
+    type: string
+    sql: CASE WHEN (restriction_derived_br!= 0 AND pi_rated_area < 50) AND f_claims_5yrs = 0 then 'Old Rule' else 'Relaxed Rule - FTP' end ;;
+  }
+
+  dimension: membership_propensity {
+    type: string
+    sql: CASE WHEN membership_propensity >= 0.015 AND membership_propensity < 0.02 then '1) 0.015-0.02'
+WHEN membership_propensity >= 0.02 AND membership_propensity < 0.025 then '2) 0.020-0.025'
+WHEN membership_propensity >= 0.025 AND membership_propensity < 0.03 then '3) 0.025-0.030'
+WHEN membership_propensity >= 0.03 AND membership_propensity < 0.035 then '4) 0.030-0.035'
+WHEN membership_propensity >= 0.035 then '5) >= 0.035'
+ELSE 'Other' end ;;
   }
 
 # Measures
@@ -983,37 +1131,31 @@ dimension: holdout_aug18 {
   measure: ad_incurred {
     type: sum
     sql:ad_incurred  ;;
-
   }
 
   measure: tp_incurred {
     type: sum
     sql:tp_incurred  ;;
-
   }
 
   measure: pi_incurred {
     type: sum
     sql:pi_incurred_cap_25k  ;;
-
   }
 
     measure: conversion {
       type: number
       sql: ${TABLE}.conversion ;;
-
   }
 
   measure: ot_incurred {
     type: sum
     sql:ot_incurred  ;;
-
   }
 
   measure: ws_incurred {
     type: sum
     sql:ws_incurred  ;;
-
   }
 
   measure: ad_count {
@@ -1366,28 +1508,22 @@ dimension: holdout_aug18 {
     type: number
     sql: sum(case when pi_incurred>=100000 then 1.00000 else 0.00000 end)/(nullif(${exposure},0.000))*1.000 ;;
     value_format: "0.0000%"
-
   }
 
   measure:  pi_xs_1m_freq{
     type: number
     sql: sum(case when pi_incurred>=1000000 then 1.00000 else 0.00000 end)/nullif(${exposure},0) ;;
     value_format: "0.0000%"
-
   }
 
   measure:  pi_xs_100k_count{
     type: number
     sql: sum(case when pi_incurred>=100000 then 1.00000 else 0.00000 end) ;;
-
-
   }
 
   measure:  pi_xs_1m_count{
     type: number
     sql: sum(case when pi_incurred>=1000000 then 1 else 0 end) ;;
-
-
   }
 
 
@@ -1395,7 +1531,6 @@ dimension: holdout_aug18 {
     type: number
     sql: sum(case when pi_incurred>=50000 then 1.00000 else 0.00000 end)/nullif(${exposure},0) ;;
     value_format: "0.0000%"
-
   }
 
 
@@ -1403,8 +1538,6 @@ dimension: holdout_aug18 {
   measure:  pi_xs_50k_count{
     type: number
     sql: sum(case when pi_incurred>=50000 then 1 else 0 end) ;;
-
-
   }
 
 
@@ -1441,19 +1574,16 @@ dimension: holdout_aug18 {
     type: number
     sql: sum(case when XoL_incurred_XS1m > 0 then 1000.0000000 else 0.0000000 end)/1000.00000/nullif(${exposure},0) ;;
     value_format: "0.0000%"
-
   }
 
   measure: XoL_Rate_Earned {
     type: number
     sql: ${XoL_Earned_Premium}/${earned_premium} ;;
     value_format_name: percent_2
-
   }
 
   measure: Record_count {
     type: count
-
   }
 
-  }
+}
