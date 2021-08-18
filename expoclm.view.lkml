@@ -49,10 +49,17 @@ view: expoclm {
              when acc_quarter < '2020-04-01' then '2020 1)Pre-lockdown'
              when acc_quarter < '2020-07-01' then '2020 2)Lockdown'
              when acc_quarter < '2020-09-01' then '2020 3)Post-Lockdown'
-             when acc_quarter < '2020-01-01' then '2020 4)Second-Wave'
+             when acc_quarter < '2021-01-01' then '2020 4)Second-Wave'
             when acc_quarter  < '2022-01-01' then '2021 5)Lockdown'
              else 'Other'
             end as Covid_Periods,
+
+       case
+             when acc_quarter < '2020-03-01' then '1)Pre-covid'
+             when acc_quarter < '2021-04-01' then '2) Covid mar20-apr21'
+             when acc_quarter >= '2021-04-01' then '3)Post-Covid'
+             else 'Other'
+            end as Covid_Periods_2,
 
         case when termincep <= '2017-06-30' then 'XoL Period 1 01/2016 to 06/2017'
               when termincep <= '2018-06-30' then 'XoL Period 2 07/2017 to 06/2018'
@@ -163,6 +170,11 @@ view: expoclm {
             occupation_type_d2,
             occupation_type_d3,
             occupation_type_d4,
+            occ.occupation as occupation_desc_d1,
+            ba.business_area as business_area_d1,
+            occ_cat.Work_Location_Category as Work_Location_Category_d1,
+            occ_cat.Occupation_Type_Category as Occupation_Type_Category_d1,
+
             case when ncdp = 'N' then res.predicted_ad_freq_an*1.11 else res.predicted_ad_freq_ap*1.11 end as predicted_ad_freq,
             case when ncdp = 'N' then res.predicted_ad_sev_an*1.25 else res.predicted_ad_sev_ap*1.25 end as predicted_ad_sev,
             case when ncdp = 'N' then res.predicted_pi_freq_an*1.06 else res.predicted_pi_freq_ap*1.06 end as predicted_pi_freq,
@@ -241,6 +253,16 @@ view: expoclm {
          left join
               qs_experian_vehicle veh
               on e.quote_id = veh.quote_id AND e.quote_id != ' ' AND e.quote_id IS NOT NULL
+         left join
+              (select LPAD(abi_code,3,0) as abi_code , occupation from abi_occupation) occ
+              ON e.occupation_type_d1 = occ.abi_code
+         left join
+              abi_business_area ba
+              on e.employers_business_d1 = ba.abi_code
+         left join
+              occupation_category_lookup occ_cat
+              on occ_cat.Occ_ABI_Code = e.occupation_type_d1
+
       )f
      ;;
   }
@@ -319,6 +341,10 @@ view: expoclm {
     sql: ${TABLE}.covid_periods;;
   }
 
+  dimension: Covid_Periods_2 {
+    type: string
+    sql: ${TABLE}.covid_periods_2;;
+  }
 
   dimension: age_mem_years {
     type: string
@@ -860,6 +886,31 @@ dimension: holdout_aug18 {
   dimension: car_age {
     type: number
     sql: car_age ;;
+  }
+
+  dimension: occupation_d1 {
+    type: string
+    sql: occupation_type_d1 ;;
+  }
+
+  dimension: occupation_desc_d1 {
+    type: string
+    sql: occupation_desc_d1 ;;
+  }
+
+  dimension: business_area_d1 {
+    type: string
+    sql: business_area_d1 ;;
+  }
+
+  dimension:  Occupation_Location_Category_d1 {
+    type: string
+    sql:  Work_Location_Category_d1 ;;
+  }
+
+  dimension: Occupation_Type_Category_d1 {
+    type: string
+    sql: Occupation_Type_Category_d1 ;;
   }
 
 # Measures
