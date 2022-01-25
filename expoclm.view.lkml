@@ -50,10 +50,17 @@ view: expoclm {
              when acc_quarter < '2020-04-01' then '2020 1)Pre-lockdown'
              when acc_quarter < '2020-07-01' then '2020 2)Lockdown'
              when acc_quarter < '2020-09-01' then '2020 3)Post-Lockdown'
-             when acc_quarter < '2020-01-01' then '2020 4)Second-Wave'
+             when acc_quarter < '2021-01-01' then '2020 4)Second-Wave'
             when acc_quarter  < '2022-01-01' then '2021 5)Lockdown'
              else 'Other'
             end as Covid_Periods,
+
+       case
+             when acc_quarter < '2020-03-01' then '1)Pre-covid'
+             when acc_quarter < '2021-04-01' then '2) Covid mar20-apr21'
+             when acc_quarter >= '2021-04-01' then '3)Post-Covid'
+             else 'Other'
+            end as Covid_Periods_2,
 
         case when termincep <= '2017-06-30' then 'XoL Period 1 01/2016 to 06/2017'
               when termincep <= '2018-06-30' then 'XoL Period 2 07/2017 to 06/2018'
@@ -202,6 +209,11 @@ view: expoclm {
             occupation_type_d2,
             occupation_type_d3,
             occupation_type_d4,
+            occ.occupation as occupation_desc_d1,
+            ba.business_area as business_area_d1,
+            occ_cat.Work_Location_Category as Work_Location_Category_d1,
+            occ_cat.Occupation_Type_Category as Occupation_Type_Category_d1,
+
             case when ncdp = 'N' then res.predicted_ad_freq_an*1.11 else res.predicted_ad_freq_ap*1.11 end as predicted_ad_freq,
             case when ncdp = 'N' then res.predicted_ad_sev_an*1.25 else res.predicted_ad_sev_ap*1.25 end as predicted_ad_sev,
             case when ncdp = 'N' then res.predicted_pi_freq_an*1.06 else res.predicted_pi_freq_ap*1.06 end as predicted_pi_freq,
@@ -299,8 +311,18 @@ view: expoclm {
               qs_experian_vehicle veh
               on e.quote_id = veh.quote_id AND e.quote_id != ' ' AND e.quote_id IS NOT NULL
          left join
+              (select LPAD(abi_code,3,0) as abi_code , occupation from abi_occupation) occ
+              ON e.occupation_type_d1 = occ.abi_code
+         left join
+              abi_business_area ba
+              on e.employers_business_d1 = ba.abi_code
+         left join
+              occupation_category_lookup occ_cat
+              on occ_cat.Occ_ABI_Code = e.occupation_type_d1
+          left join
               qs_mi_outputs mi
               ON e.quote_id = mi.quote_id AND e.quote_id != ' ' AND to_date(mi.quote_dttm) != '2999-12-31' AND e.quote_id IS NOT NULL AND mi.rct_mi_14 != ' '
+
       )f
      ;;
   }
@@ -379,6 +401,10 @@ view: expoclm {
     sql: ${TABLE}.covid_periods;;
   }
 
+  dimension: Covid_Periods_2 {
+    type: string
+    sql: ${TABLE}.covid_periods_2;;
+  }
 
   dimension: age_mem_years {
     type: string
@@ -490,7 +516,7 @@ view: expoclm {
 
   dimension: market_ratio_bands {
     type: tier
-    tiers: [0.2, 0.22, 0.24, 0.26,0.28,0.30,0.32,0.34,0.36,0.38,0.40,0.42,0.44,0.46,0.48,0.50,0.52,0.540,0.56,0.58,0.60,0.62,0.64,0.66,0.68,0.70,0.72,0.74,0.76,0.78,0.80,0.82,0.84,0.86,0.88,0.90,0.92,0.94,0.96,0.98,1.0,1.02,1.04,1.06,1.08,1.10,1.12,1.14,1.16,1.18,1.2]
+    tiers: [0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5]
     style: interval
     sql: ${TABLE}.market_ratio ;;
     value_format_name: decimal_2
@@ -914,12 +940,12 @@ dimension: aug18vresv3_ads {
 dimension: scores_attached {
     type: string
     sql: risk_scores ;;
-}
+  }
 
 dimension: holdout_aug18 {
     type: string
     sql: holdout_aug18 ;;
-}
+  }
 
   dimension: holdout_jul19 {
     type: string
@@ -940,6 +966,33 @@ dimension: holdout_aug18 {
     type: number
     sql: car_age ;;
   }
+
+
+  dimension: occupation_d1 {
+    type: string
+    sql: occupation_type_d1 ;;
+  }
+
+  dimension: occupation_desc_d1 {
+    type: string
+    sql: occupation_desc_d1 ;;
+  }
+
+  dimension: business_area_d1 {
+    type: string
+    sql: business_area_d1 ;;
+  }
+
+  dimension:  Occupation_Location_Category_d1 {
+    type: string
+    sql:  Work_Location_Category_d1 ;;
+  }
+
+  dimension: Occupation_Type_Category_d1 {
+    type: string
+    sql: Occupation_Type_Category_d1 ;;
+  }
+
 
   dimension: Membership_Type {
     type: string
@@ -1073,37 +1126,31 @@ ELSE 'Other' end ;;
   measure: ad_incurred {
     type: sum
     sql:ad_incurred  ;;
-
   }
 
   measure: tp_incurred {
     type: sum
     sql:tp_incurred  ;;
-
   }
 
   measure: pi_incurred {
     type: sum
     sql:pi_incurred_cap_25k  ;;
-
   }
 
     measure: conversion {
       type: number
       sql: ${TABLE}.conversion ;;
-
   }
 
   measure: ot_incurred {
     type: sum
     sql:ot_incurred  ;;
-
   }
 
   measure: ws_incurred {
     type: sum
     sql:ws_incurred  ;;
-
   }
 
   measure: ad_count {
@@ -1456,28 +1503,22 @@ ELSE 'Other' end ;;
     type: number
     sql: sum(case when pi_incurred>=100000 then 1.00000 else 0.00000 end)/(nullif(${exposure},0.000))*1.000 ;;
     value_format: "0.0000%"
-
   }
 
   measure:  pi_xs_1m_freq{
     type: number
     sql: sum(case when pi_incurred>=1000000 then 1.00000 else 0.00000 end)/nullif(${exposure},0) ;;
     value_format: "0.0000%"
-
   }
 
   measure:  pi_xs_100k_count{
     type: number
     sql: sum(case when pi_incurred>=100000 then 1.00000 else 0.00000 end) ;;
-
-
   }
 
   measure:  pi_xs_1m_count{
     type: number
     sql: sum(case when pi_incurred>=1000000 then 1 else 0 end) ;;
-
-
   }
 
 
@@ -1485,7 +1526,6 @@ ELSE 'Other' end ;;
     type: number
     sql: sum(case when pi_incurred>=50000 then 1.00000 else 0.00000 end)/nullif(${exposure},0) ;;
     value_format: "0.0000%"
-
   }
 
 
@@ -1493,8 +1533,6 @@ ELSE 'Other' end ;;
   measure:  pi_xs_50k_count{
     type: number
     sql: sum(case when pi_incurred>=50000 then 1 else 0 end) ;;
-
-
   }
 
 
@@ -1531,19 +1569,16 @@ ELSE 'Other' end ;;
     type: number
     sql: sum(case when XoL_incurred_XS1m > 0 then 1000.0000000 else 0.0000000 end)/1000.00000/nullif(${exposure},0) ;;
     value_format: "0.0000%"
-
   }
 
   measure: XoL_Rate_Earned {
     type: number
     sql: ${XoL_Earned_Premium}/${earned_premium} ;;
     value_format_name: percent_2
-
   }
 
   measure: Record_count {
     type: count
-
   }
 
-  }
+}
