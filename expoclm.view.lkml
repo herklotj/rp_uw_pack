@@ -1046,6 +1046,11 @@ dimension: holdout_aug18 {
     sql: CASE WHEN (restriction_derived_br!= 0 AND pi_rated_area < 50) AND f_claims_5yrs = 0 then 'Old Rule' else 'Relaxed Rule - FTP' end ;;
   }
 
+  dimension: BR62_FTP_expansion {
+    type: string
+    sql:  ${TABLE}.br62_ftp_expansion_flag ;;
+  }
+
   dimension: membership_propensity {
     type: string
     sql: CASE WHEN membership_propensity >= 0.015 AND membership_propensity < 0.02 then '1) 0.015-0.02'
