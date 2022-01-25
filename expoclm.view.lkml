@@ -270,12 +270,7 @@ view: expoclm {
             CASE WHEN ad3_dd1_rd1_residencydate1 IS NULL THEN dob_d4 ELSE ad3_dd1_rd1_residencydate1 END AS D4_Residency_Date,
             mi.rct_mi_14 AS predicted_market_price
 
-            /*case when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d2 IN ('S', 'W') AND occupation_type_d2 != 'U03')
-            AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
-            when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d3 IN ('S', 'W') AND occupation_type_d3 != 'U03')
-            AND (occupation_type_d2 != 'U03' OR occupation_type_d2 IS NULL) AND (occupation_type_d4 != 'U03' OR occupation_type_d4 IS NULL) then 1
-            when occupation_type_d1 = 'U03' AND (achub_live_member1 = 'Y' OR achub_add1_live_member1 = 'Y') AND (relationship_d4 IN ('S', 'W') AND occupation_type_d4 != 'U03')
-            AND (occupation_type_d3 != 'U03' OR occupation_type_d3 IS NULL) AND (occupation_type_d2 != 'U03' OR occupation_type_d2 IS NULL) then 1     else 0 end as business_rule_3,*/
+            CASE WHEN e4q02 IN (2, 3, 4, 5) AND e4q17!= 6 AND E0BUMK1_MatchCategory1 IN ('1a', '1b') then 'Expanded_Footprint' else 'Core_Footprint' end as br62_ftp_expansion_flag
 
          FROM
             expoclm_quarters e
