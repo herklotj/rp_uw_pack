@@ -698,6 +698,12 @@ view: expoclm {
     sql: ${TABLE}.ncd_years ;;
   }
 
+  dimension: ncd_years_9plus {
+    label: "NCD Years 9+"
+    type: string
+    sql: case when ${TABLE}.ncd_years >=9 then '9+' else ${TABLE}.ncd_years end;;
+  }
+
   dimension: transmission {
     label: "Transmission"
     type: string
