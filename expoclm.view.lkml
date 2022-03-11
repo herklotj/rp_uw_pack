@@ -282,7 +282,13 @@ view: expoclm {
             CASE WHEN ad3_dd1_rd1_residencydate1 IS NULL THEN dob_d4 ELSE ad3_dd1_rd1_residencydate1 END AS D4_Residency_Date,
             mi.rct_mi_14 AS predicted_market_price,
 
-            CASE WHEN e4q02 IN (2, 3, 4, 5) AND e4q17!= 6 AND E0BUMK1_MatchCategory1 IN ('1a', '1b') then 'Expanded_Footprint' else 'Core_Footprint' end as br62_ftp_expansion_flag
+            CASE WHEN e4q02 IN (2, 3, 4, 5) AND e4q17!= 6 AND E0BUMK1_MatchCategory1 IN ('1a', '1b') then 'Expanded_Footprint' else 'Core_Footprint' end as br62_ftp_expansion_flag,
+
+            CASE WHEN scheme_number = '102' AND e0cos1_s1_pi1_e1a011 = 1 THEN '102_CCJ_1'
+            WHEN scheme_number = '102' AND e0cos1_s1_pi1_e1a011 = 2 THEN '102_CCJ_2'
+            WHEN scheme_number = '102' AND e0cos1_s1_pi1_e1a011 = 3 THEN '102_CCJ_3'
+            WHEN scheme_number = '103' AND e0cos1_s1_pi1_e1a011 = 1 THEN '103_CCJ_1'
+            ELSE 'Core_Footprint' end as ccj_expanded_ftp_flag
 
          FROM
             expoclm_quarters e
@@ -1055,6 +1061,11 @@ dimension: holdout_aug18 {
   dimension: BR62_FTP_expansion {
     type: string
     sql:  ${TABLE}.br62_ftp_expansion_flag ;;
+  }
+
+  dimension: ccj_expanded_ftp_flag {
+    type: string
+    sql:  ${TABLE}.ccj_expanded_ftp_flag ;;
   }
 
   dimension: membership_propensity {
