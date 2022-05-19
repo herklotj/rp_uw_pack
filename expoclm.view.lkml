@@ -284,6 +284,10 @@ view: expoclm {
 
             CASE WHEN e4q02 IN (2, 3, 4, 5) AND e4q17!= 6 AND E0BUMK1_MatchCategory1 IN ('1a', '1b') then 'Expanded_Footprint' else 'Core_Footprint' end as br62_ftp_expansion_flag
 
+            CASE WHEN min_age >= 25 and min_age < 30 and power_bhp >= 130 and power_bhp < 200 and body_style = 'HATCHBACK' then 'Expanded_Footprint'
+            ELSE 'Core_Footprint' end as br70_expanded_ftp_flag
+
+
          FROM
             expoclm_quarters e
          left join
@@ -372,7 +376,7 @@ view: expoclm {
       week
     ]
     sql: ${TABLE}.termincep ;;
-    }
+  }
 
   dimension_group: quote_date {
     type: time
@@ -416,7 +420,7 @@ view: expoclm {
     type: string
     sql: ${TABLE}.scheme ;;
 
-    }
+  }
 
 
   dimension: address_match {
@@ -498,7 +502,7 @@ view: expoclm {
          WHEN to_date(quote_dttm) >= '2021-05-21'  AND inception_strategy = '35: NM July 19' THEN 'NEW (35)'
          ELSE 'OLD'
        END;;
-}
+  }
 
   dimension: consumer_name {
     label: "Channel"
@@ -806,13 +810,13 @@ view: expoclm {
   }
 
 
- dimension: aug18vresv3_bc {
+  dimension: aug18vresv3_bc {
     type: number
     sql: round(
                 case when (predicted_incurred_aug18/ nullif(predicted_incurred_resv3,0)-1) > 1 then 1 else round( (predicted_incurred_aug18/ nullif(predicted_incurred_resv3,0)-1) ,1.0) end
                 ,1.0)
                 ;;
- }
+  }
 
   dimension: jul19credvaug18_bc {
     type: number
@@ -831,7 +835,7 @@ view: expoclm {
   }
 
 
-dimension: aug18vresv3_adf {
+  dimension: aug18vresv3_adf {
     type: number
     sql: round(
                 case when (predicted_ad_freq_aug18/ nullif(predicted_ad_freq,0)-1) > 1 then 1 else round( (predicted_ad_freq_aug18/ nullif(predicted_ad_freq,0)-1) ,1.0) end
@@ -839,7 +843,7 @@ dimension: aug18vresv3_adf {
                 ;;
   }
 
-dimension: aug18vresv3_ads {
+  dimension: aug18vresv3_ads {
     type: number
     sql: round(
                 case when (predicted_ad_sev_aug18/ nullif(predicted_ad_sev,0)-1) > 1 then 1 else round( (predicted_ad_sev_aug18/ nullif(predicted_ad_sev,0)-1) ,1.0) end
@@ -943,12 +947,12 @@ dimension: aug18vresv3_ads {
 
 
 
-dimension: scores_attached {
+  dimension: scores_attached {
     type: string
     sql: risk_scores ;;
   }
 
-dimension: holdout_aug18 {
+  dimension: holdout_aug18 {
     type: string
     sql: holdout_aug18 ;;
   }
@@ -1057,14 +1061,19 @@ dimension: holdout_aug18 {
     sql:  ${TABLE}.br62_ftp_expansion_flag ;;
   }
 
+  dimension: BR70_FTP_expansion {
+    type: string
+    sql:  ${TABLE}.br70_expanded_ftp_flag ;;
+  }
+
   dimension: membership_propensity {
     type: string
     sql: CASE WHEN membership_propensity >= 0.015 AND membership_propensity < 0.02 then '1) 0.015-0.02'
-WHEN membership_propensity >= 0.02 AND membership_propensity < 0.025 then '2) 0.020-0.025'
-WHEN membership_propensity >= 0.025 AND membership_propensity < 0.03 then '3) 0.025-0.030'
-WHEN membership_propensity >= 0.03 AND membership_propensity < 0.035 then '4) 0.030-0.035'
-WHEN membership_propensity >= 0.035 then '5) >= 0.035'
-ELSE 'Other' end ;;
+      WHEN membership_propensity >= 0.02 AND membership_propensity < 0.025 then '2) 0.020-0.025'
+      WHEN membership_propensity >= 0.025 AND membership_propensity < 0.03 then '3) 0.025-0.030'
+      WHEN membership_propensity >= 0.03 AND membership_propensity < 0.035 then '4) 0.030-0.035'
+      WHEN membership_propensity >= 0.035 then '5) >= 0.035'
+      ELSE 'Other' end ;;
   }
 
 # Measures
@@ -1149,9 +1158,9 @@ ELSE 'Other' end ;;
     sql:pi_incurred_cap_25k  ;;
   }
 
-    measure: conversion {
-      type: number
-      sql: ${TABLE}.conversion ;;
+  measure: conversion {
+    type: number
+    sql: ${TABLE}.conversion ;;
   }
 
   measure: ot_incurred {
