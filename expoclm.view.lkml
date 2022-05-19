@@ -282,7 +282,7 @@ view: expoclm {
             CASE WHEN ad3_dd1_rd1_residencydate1 IS NULL THEN dob_d4 ELSE ad3_dd1_rd1_residencydate1 END AS D4_Residency_Date,
             mi.rct_mi_14 AS predicted_market_price,
 
-            CASE WHEN e4q02 IN (2, 3, 4, 5) AND e4q17!= 6 AND E0BUMK1_MatchCategory1 IN ('1a', '1b') then 'Expanded_Footprint' else 'Core_Footprint' end as br62_ftp_expansion_flag
+            CASE WHEN e4q02 IN (2, 3, 4, 5) AND e4q17!= 6 AND E0BUMK1_MatchCategory1 IN ('1a', '1b') then 'Expanded_Footprint' else 'Core_Footprint' end as br62_ftp_expansion_flag,
 
             CASE WHEN min_age >= 25 and min_age < 30 and power_bhp >= 130 and power_bhp < 200 and body_style = 'HATCHBACK' then 'Expanded_Footprint'
             ELSE 'Core_Footprint' end as br70_expanded_ftp_flag
