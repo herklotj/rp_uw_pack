@@ -1070,11 +1070,12 @@ dimension: holdout_aug18 {
 
   dimension: membership_propensity {
     type: string
-    sql: CASE WHEN membership_propensity >= 0.015 AND membership_propensity < 0.02 then '1) 0.015-0.02'
-WHEN membership_propensity >= 0.02 AND membership_propensity < 0.025 then '2) 0.020-0.025'
-WHEN membership_propensity >= 0.025 AND membership_propensity < 0.03 then '3) 0.025-0.030'
-WHEN membership_propensity >= 0.03 AND membership_propensity < 0.035 then '4) 0.030-0.035'
-WHEN membership_propensity >= 0.035 then '5) >= 0.035'
+    sql: CASE WHEN membership_propensity >= 0 AND membership_propensity < 0.015 then '1) 0.00-0.014'
+     WHEN membership_propensity >= 0.015 AND membership_propensity < 0.02 then '2) 0.015-0.019'
+WHEN membership_propensity >= 0.02 AND membership_propensity < 0.025 then '3) 0.020-0.024'
+WHEN membership_propensity >= 0.025 AND membership_propensity < 0.03 then '4) 0.025-0.029'
+WHEN membership_propensity >= 0.03 AND membership_propensity < 0.035 then '5) 0.030-0.034'
+WHEN membership_propensity >= 0.035 then '6) >= 0.035'
 ELSE 'Other' end ;;
   }
 
@@ -1301,7 +1302,6 @@ ELSE 'Other' end ;;
     sql: ${ws_count}/nullif(${exposure},0) ;;
     value_format_name: percent_1
   }
-
 
 
 
