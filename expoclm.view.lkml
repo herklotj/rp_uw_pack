@@ -1161,6 +1161,36 @@ ELSE 'Other' end ;;
     sql:pi_incurred_cap_25k  ;;
   }
 
+  measure: ad_lr {
+    type: number
+    sql: sum(ad_incurred)/nullif(sum(eprem),0);;
+    value_format: "0.0%"
+  }
+
+  measure: tp_lr {
+    type: number
+    sql: sum(tp_incurred)/nullif(sum(eprem),0);;
+    value_format: "0.0%"
+  }
+
+  measure: pi_cap_50k_lr {
+    type: number
+    sql: sum(pi_incurred_cap_50k)/nullif(sum(eprem),0);;
+    value_format: "0.0%"
+  }
+
+  measure: ot_lr {
+    type: number
+    sql: sum(ot_incurred)/nullif(sum(eprem),0);;
+    value_format: "0.0%"
+  }
+
+  measure: ws_lr {
+    type: number
+    sql: sum(ws_incurred)/nullif(sum(eprem),0);;
+    value_format: "0.0%"
+  }
+
     measure: conversion {
       type: number
       sql: ${TABLE}.conversion ;;
