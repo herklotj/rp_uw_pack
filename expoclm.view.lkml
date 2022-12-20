@@ -284,9 +284,11 @@ view: expoclm {
 
             CASE WHEN e4q02 IN (2, 3, 4, 5) AND e4q17!= 6 AND E0BUMK1_MatchCategory1 IN ('1a', '1b') then 'Expanded_Footprint' else 'Core_Footprint' end as br62_ftp_expansion_flag,
 
-            CASE WHEN min_age >= 25 and min_age < 30 and power_bhp >= 130 and power_bhp < 200 and body_style = 'HATCHBACK' then 'Expanded_Footprint'
-            ELSE 'Core_Footprint' end as br70_expanded_ftp_flag
-
+            CASE WHEN scheme_number = '102' AND e0cos1_s1_pi1_e1a011 = 1 THEN '102_CCJ_1'
+            WHEN scheme_number = '102' AND e0cos1_s1_pi1_e1a011 = 2 THEN '102_CCJ_2'
+            WHEN scheme_number = '102' AND e0cos1_s1_pi1_e1a011 = 3 THEN '102_CCJ_3'
+            WHEN scheme_number = '103' AND e0cos1_s1_pi1_e1a011 = 1 THEN '103_CCJ_1'
+            ELSE 'Core_Footprint' end as ccj_expanded_ftp_flag
 
          FROM
             expoclm_quarters e
@@ -1061,18 +1063,19 @@ view: expoclm {
     sql:  ${TABLE}.br62_ftp_expansion_flag ;;
   }
 
-  dimension: BR70_FTP_expansion {
+  dimension: ccj_expanded_ftp_flag {
     type: string
-    sql:  ${TABLE}.br70_expanded_ftp_flag ;;
+    sql:  ${TABLE}.ccj_expanded_ftp_flag ;;
   }
 
   dimension: membership_propensity {
     type: string
-    sql: CASE WHEN membership_propensity >= 0.015 AND membership_propensity < 0.02 then '1) 0.015-0.02'
-      WHEN membership_propensity >= 0.02 AND membership_propensity < 0.025 then '2) 0.020-0.025'
-      WHEN membership_propensity >= 0.025 AND membership_propensity < 0.03 then '3) 0.025-0.030'
-      WHEN membership_propensity >= 0.03 AND membership_propensity < 0.035 then '4) 0.030-0.035'
-      WHEN membership_propensity >= 0.035 then '5) >= 0.035'
+    sql: CASE WHEN membership_propensity >= 0 AND membership_propensity < 0.015 then '1) 0.00-0.014'
+           WHEN membership_propensity >= 0.015 AND membership_propensity < 0.02 then '2) 0.015-0.019'
+      WHEN membership_propensity >= 0.02 AND membership_propensity < 0.025 then '3) 0.020-0.024'
+      WHEN membership_propensity >= 0.025 AND membership_propensity < 0.03 then '4) 0.025-0.029'
+      WHEN membership_propensity >= 0.03 AND membership_propensity < 0.035 then '5) 0.030-0.034'
+      WHEN membership_propensity >= 0.035 then '6) >= 0.035'
       ELSE 'Other' end ;;
   }
 
@@ -1156,6 +1159,36 @@ view: expoclm {
   measure: pi_incurred {
     type: sum
     sql:pi_incurred_cap_25k  ;;
+  }
+
+  measure: ad_lr {
+    type: number
+    sql: sum(ad_incurred)/nullif(sum(eprem),0);;
+    value_format: "0.0%"
+  }
+
+  measure: tp_lr {
+    type: number
+    sql: sum(tp_incurred)/nullif(sum(eprem),0);;
+    value_format: "0.0%"
+  }
+
+  measure: pi_cap_50k_lr {
+    type: number
+    sql: sum(pi_incurred_cap_50k)/nullif(sum(eprem),0);;
+    value_format: "0.0%"
+  }
+
+  measure: ot_lr {
+    type: number
+    sql: sum(ot_incurred)/nullif(sum(eprem),0);;
+    value_format: "0.0%"
+  }
+
+  measure: ws_lr {
+    type: number
+    sql: sum(ws_incurred)/nullif(sum(eprem),0);;
+    value_format: "0.0%"
   }
 
   measure: conversion {
@@ -1299,7 +1332,6 @@ view: expoclm {
     sql: ${ws_count}/nullif(${exposure},0) ;;
     value_format_name: percent_1
   }
-
 
 
 
