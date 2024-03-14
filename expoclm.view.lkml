@@ -1117,14 +1117,14 @@ ELSE 'Other' end ;;
   measure: total_incurred {
     type: sum
     sql: ${TABLE}.total_incurred ;;
-    hidden: yes
+
   }
 
   measure: total_incurred_cap_50k {
     label: "Total Incurred (Cap 50K)"
     type: sum
     sql: ${TABLE}.total_incurred_cap_50k ;;
-    hidden: yes
+
   }
 
   measure: total_incurred_cap_25k {
@@ -1138,7 +1138,7 @@ ELSE 'Other' end ;;
     label: "Total Incurred (Cap 1m)"
     type: number
     sql: sum(case when total_incurred > 1000000 then 1000000 else total_incurred end) ;;
-    hidden: yes
+
   }
 
 
@@ -1146,14 +1146,14 @@ ELSE 'Other' end ;;
     label: "Total Count (Exc WS)"
     type: sum
     sql: ${TABLE}.total_count_exc_ws ;;
-    hidden: yes
+
   }
 
   measure: reported_count_exc_ws {
     label: "Reported Count (Exc WS)"
     type: sum
     sql: ${TABLE}.reported_count_exc_ws ;;
-    hidden: yes
+
   }
 
   measure: ad_incurred {
@@ -1220,35 +1220,35 @@ ELSE 'Other' end ;;
     label: "AD Count"
     type: sum
     sql: ${TABLE}.ad_count ;;
-    hidden: yes
+
   }
 
   measure: pi_count {
     label: "PI Count"
     type: sum
     sql: ${TABLE}.pi_count ;;
-    hidden: yes
+
   }
 
   measure: tp_count {
     label: "TP Count"
     type: sum
     sql: ${TABLE}.tp_count ;;
-    hidden: yes
+
   }
 
   measure: ot_count {
     label: "OT Count"
     type: sum
     sql: ${TABLE}.ot_count ;;
-    hidden: yes
+
   }
 
   measure: ws_count {
     label: "WS Count"
     type: sum
     sql: ${TABLE}.ws_count ;;
-    hidden: yes
+
   }
 
   measure: fault_frequency {
