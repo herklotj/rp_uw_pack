@@ -1141,6 +1141,12 @@ ELSE 'Other' end ;;
     hidden: yes
   }
 
+  measure: total_incurred_cap_2m {
+    label: "Total Incurred (Cap 2m)"
+    type: number
+    sql: sum(case when total_incurred > 2000000 then 2000000 else total_incurred end) ;;
+    hidden: yes
+  }
 
   measure: total_count_exc_ws {
     label: "Total Count (Exc WS)"
@@ -1373,6 +1379,12 @@ ELSE 'Other' end ;;
     value_format_name: percent_1
   }
 
+  measure: loss_ratio_cap_2m {
+    label: "Loss Ratio (Cap 2m)"
+    type: number
+    sql: ${total_incurred_cap_2m}/nullif(${earned_premium},0) ;;
+    value_format_name: percent_1
+  }
 
   measure: pred_loss_ratio_resv3 {
     type: number
@@ -1573,6 +1585,12 @@ ELSE 'Other' end ;;
     value_format: "0.0000%"
   }
 
+  measure:  pi_xs_2m_freq{
+    type: number
+    sql: sum(case when pi_incurred>=2000000 then 1.00000 else 0.00000 end)/nullif(${exposure},0) ;;
+    value_format: "0.0000%"
+  }
+
   measure:  pi_xs_100k_count{
     type: number
     sql: sum(case when pi_incurred>=100000 then 1.00000 else 0.00000 end) ;;
@@ -1583,6 +1601,10 @@ ELSE 'Other' end ;;
     sql: sum(case when pi_incurred>=1000000 then 1 else 0 end) ;;
   }
 
+  measure:  pi_xs_2m_count{
+    type: number
+    sql: sum(case when pi_incurred>=2000000 then 1 else 0 end) ;;
+  }
 
   measure:  pi_xs_50k_freq{
     type: number
